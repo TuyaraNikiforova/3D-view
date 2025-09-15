@@ -783,7 +783,7 @@ function createSummaryTable(data, container, selectedOIVs = [], selectedThemes =
                 const detailCell = document.createElement('td');
                 detailCell.colSpan = 5; // Изменили на 5 столбцов вместо 6
                 
-                // Создаем детальную таблицу
+                // Создаем детальную таблицу - ИСПРАВЛЕНО: передаем все необходимые параметры
                 const detailTable = createDetailTable(data, theme, selectedOIVs);
                 detailCell.appendChild(detailTable);
                 

@@ -17,13 +17,15 @@ const fbxLoader = new FBXLoader();
 // Карта соответствия OIV и их моделей
 const oivModels = {
     "OIV001": "/models/DF.fbx",
-    "OIV002": "/models/GKU.fbx"
+    "OIV002": "/models/GKU.fbx",
+	"OIV030": "/models/DZM.fbx"
 };
 
 const oivColors = {
     "OIV001": 0x3498db, // Синий
     "OIV002": 0x841C10, // Красный
-    "OIV003": 0x2ecc71  // Зеленый
+    "OIV003": 0x2ecc71,  // Зеленый
+	"OIV030": 0xFFFFFF
     // Добавьте цвета для других OIV
 };
 
