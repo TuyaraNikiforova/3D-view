@@ -1,103 +1,93 @@
-import { exportDashboardToExcel } from './export_dashboard.js';
+// Глобальные переменные для хранения данных
+let currentData = null;
+let objectsData = null;
+let parametersData = null;
+let indicatorsData = null;
 
-let chartJsLoading = null;
-let objectsData = [];
-let parametersData = [];
-let indicatorsData = [];
-
-// Фиксированная цветовая палитра для графиков
-const COLOR_PALETTE = [
-    '#4a6da7', // синий
-    '#6da74a', // зеленый
-    '#a76d4a', // коричневый
-    '#a74a6d', // розовый
-    '#4aa7a7', // бирюзовый
-    '#6d4aa7', // фиолетовый
-    '#a7a74a', // оливковый
-    '#4a6da7', // синий (повтор для большего количества элементов)
-    '#6da74a', // зеленый (повтор)
-];
-
-function loadChartJS() {
-    if (chartJsLoading) {
-        return chartJsLoading;
-    }
-    
-    chartJsLoading = new Promise((resolve, reject) => {
-        if (typeof Chart !== 'undefined' && typeof ChartDataLabels !== 'undefined') {
-            Chart.register(ChartDataLabels);
-        } else {
-            console.error('Chart.js or ChartDataLabels plugin not loaded');
-        }
-
-        const scriptChart = document.createElement('script');
-        scriptChart.src = 'https://cdn.jsdelivr.net/npm/chart.js';
-        
-        const scriptLabels = document.createElement('script');
-        scriptLabels.src = 'https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0';
-        
-        let loaded = 0;
-        const checkLoaded = () => {
-            if (++loaded === 2) resolve();
-        };
-        
-        scriptChart.onload = checkLoaded;
-        scriptLabels.onload = checkLoaded;
-        
-        scriptChart.onerror = () => {
-            console.error('Ошибка загрузки Chart.js');
-            reject(new Error('Не удалось загрузить Chart.js'));
-        };
-        
-        scriptLabels.onerror = () => {
-            console.error('Ошибка загрузки chartjs-plugin-datalabels');
-            reject(new Error('Не удалось загрузить chartjs-plugin-datalabels'));
-        };
-        
-        document.head.appendChild(scriptChart);
-        document.head.appendChild(scriptLabels);
-    });
-    
-    return chartJsLoading;
-}
-
+// Основной код dashboard.js
 document.addEventListener('DOMContentLoaded', function() {
-    const savedFilters = localStorage.getItem('dashboardFilters');
-    console.log('Saved filters:', savedFilters);
-    
-    if (savedFilters) {
-        try {
-            const filters = JSON.parse(savedFilters);
-            console.log('Parsed filters:', filters);
-            loadFilteredData(filters);
-        } catch (e) {
-            console.error('Error parsing filters:', e);
-            showEmptyState();
-        }
-    } else {
-        showEmptyState();
-    }
-});
-
-function loadFilteredData(filters) {
+    // Загружаем дополнительные данные
     Promise.all([
-        fetch('/data/data.json').then(res => res.json()),
         fetch('/data/objects.json').then(res => res.json()),
         fetch('/data/parameters.json').then(res => res.json()),
-        fetch('/data/indicators.json').then(res => res.json()) 
+        fetch('/data/indicators.json').then(res => res.json())
     ])
-    .then(([data, objects, parameters, indicators]) => {
+    .then(([objects, parameters, indicators]) => {
         objectsData = objects;
         parametersData = parameters;
-        indicatorsData = indicators; 
-        const filteredData = applyFiltersToData(data, filters);
-        if (shouldShowDashboard(filteredData, filters)) {
-            createDashboardLayout(filteredData);
+        indicatorsData = indicators;
+        
+        // Проверяем сохраненные фильтры из localStorage
+        const savedFilters = localStorage.getItem('dashboardFilters');
+        if (savedFilters) {
+            const filters = JSON.parse(savedFilters);
+            loadFilteredData(filters);
+            applySavedFiltersToUI(filters); // Применяем фильтры к UI
         } else {
             showEmptyState();
         }
     })
-    .catch(error => console.error('Error loading data:', error));
+    .catch(error => console.error('Error loading additional data:', error));
+    
+    // Добавляем обработчики для кнопок раскрытия/скрытия таблиц
+    document.querySelectorAll('.table-header').forEach(header => {
+        header.addEventListener('click', function() {
+            const content = this.nextElementSibling;
+            const icon = this.querySelector('.toggle-icon');
+            
+            if (content.classList.contains('visible')) {
+                content.classList.remove('visible');
+                icon.textContent = '+';
+            } else {
+                content.classList.add('visible');
+                icon.textContent = '-';
+            }
+        });
+    });
+    
+    // Обработчик для кнопки экспорта
+    document.getElementById('export-btn').addEventListener('click', function() {
+        exportDashboardToExcel(currentData);
+    });
+    
+    // Добавляем обработчики для фильтров
+    document.getElementById('apply-filters').addEventListener('click', applyFiltersFromUI);
+    document.getElementById('clear-filters').addEventListener('click', clearFilters);
+});
+
+// Функция для применения сохраненных фильтров к UI
+function applySavedFiltersToUI(filters) {
+    // Применяем фильтры тем
+    if (filters.themes && filters.themes.length > 0) {
+        document.querySelectorAll('.theme-checkbox').forEach(checkbox => {
+            checkbox.checked = filters.themes.includes(checkbox.value);
+        });
+    }
+    
+    // Применяем фильтры OIV
+    if (filters.oivIds && filters.oivIds.length > 0) {
+        document.querySelectorAll('.oiv-checkbox').forEach(checkbox => {
+            checkbox.checked = filters.oivIds.includes(checkbox.value);
+        });
+    }
+}
+
+function loadFilteredData(filters) {
+    // Загружаем данные и применяем фильтры
+    fetch('/data/data.json')
+        .then(res => res.json())
+        .then(data => {
+            // Фильтруем данные в соответствии с выбранными фильтрами
+            const filteredData = applyFiltersToData(data, filters);
+            if (shouldShowDashboard(filteredData, filters)) {
+                createDashboardLayout(filteredData);
+                createFilters(filteredData);
+                applySavedFiltersToUI(filters); // Применяем фильтры к UI после создания
+            } else {
+                showEmptyState();
+            }
+        })
+        .catch(error => console.error('Error loading data:', error));
 }
 
 function applyFiltersToData(data, filters) {
@@ -107,33 +97,11 @@ function applyFiltersToData(data, filters) {
         oiv: []
     };
 
-    if (filters.sourceOivIds && filters.sourceOivIds.length > 0) {
-        filteredData.edges = data.edges.filter(edge => 
-            filters.sourceOivIds.includes(edge.source));
-        
-        const allOIVs = new Set();
-        filteredData.edges.forEach(edge => {
-            allOIVs.add(edge.source);
-            allOIVs.add(edge.target);
-        });
-        
-        filteredData.oiv = data.oiv.filter(oiv => allOIVs.has(oiv.id));
-    } 
-    else if (filters.targetOivIds && filters.targetOivIds.length > 0) {
-        filteredData.edges = data.edges.filter(edge => 
-            filters.targetOivIds.includes(edge.target));
-        
-        const allOIVs = new Set();
-        filteredData.edges.forEach(edge => {
-            allOIVs.add(edge.source);
-            allOIVs.add(edge.target);
-        });
-        
-        filteredData.oiv = data.oiv.filter(oiv => allOIVs.has(oiv.id));
-    }
-    else if (filters.themes && filters.themes.length > 0) {
+    // Фильтрация по темам
+    if (filters.themes && filters.themes.length > 0) {
         filteredData.edges = data.edges.filter(edge => filters.themes.includes(edge.theme));
         
+        // Получаем OIV, участвующие в выбранных темах
         const themeOIVs = new Set();
         filteredData.edges.forEach(edge => {
             themeOIVs.add(edge.source);
@@ -142,40 +110,22 @@ function applyFiltersToData(data, filters) {
         
         filteredData.oiv = data.oiv.filter(oiv => themeOIVs.has(oiv.id));
     }
-    else if (filters.complexes && filters.complexes.length > 0) {
-        filteredData.oiv = data.oiv.filter(oiv => filters.complexes.includes(oiv.complex));
-        
-        const oivIds = filteredData.oiv.map(oiv => oiv.id);
+    // Фильтрация по OIV (объединенный фильтр для источников и целей)
+    else if (filters.oivIds && filters.oivIds.length > 0) {
         filteredData.edges = data.edges.filter(edge => 
-            oivIds.includes(edge.source) || oivIds.includes(edge.target));
-    }
-    else if (filters.strategies && filters.strategies.length > 0) {
-        filteredData.oiv = data.oiv.filter(oiv => 
-            oiv.strategies && oiv.strategies.some(s => filters.strategies.includes(s)));
+            filters.oivIds.includes(edge.source) || filters.oivIds.includes(edge.target));
         
-        const oivIds = filteredData.oiv.map(oiv => oiv.id);
-        filteredData.edges = data.edges.filter(edge => 
-            oivIds.includes(edge.source) || oivIds.includes(edge.target));
-    }
-    else if (filters.programs && filters.programs.length > 0) {
-        filteredData.oiv = data.oiv.filter(oiv => 
-            oiv.programs && oiv.programs.some(p => filters.programs.includes(p)));
-        
-        const oivIds = filteredData.oiv.map(oiv => oiv.id);
-        filteredData.edges = data.edges.filter(edge => 
-            oivIds.includes(edge.source) || oivIds.includes(edge.target));
-    }
-    else if (filters.edges && filters.edges.length > 0) {
-        filteredData.edges = data.edges.filter(edge => filters.edges.includes(edge.id));
-        
-        const edgeOIVs = new Set();
+        // Получаем все уникальные OIV (источники и цели)
+        const allOIVs = new Set();
         filteredData.edges.forEach(edge => {
-            edgeOIVs.add(edge.source);
-            edgeOIVs.add(edge.target);
+            allOIVs.add(edge.source);
+            allOIVs.add(edge.target);
         });
         
-        filteredData.oiv = data.oiv.filter(oiv => edgeOIVs.has(oiv.id));
-    } else {
+        filteredData.oiv = data.oiv.filter(oiv => allOIVs.has(oiv.id));
+    }
+    // Если нет подходящих фильтров, возвращаем пустые данные
+    else {
         return {
             ...data,
             edges: [],
@@ -187,22 +137,16 @@ function applyFiltersToData(data, filters) {
 }
 
 function shouldShowDashboard(data, filters) {
+    // Проверяем, есть ли данные для отображения
     return (
         (filters.oivIds && filters.oivIds.length > 0) ||
-        (filters.themes && filters.themes.length > 0) ||
-        (filters.complexes && filters.complexes.length > 0) ||
-        (filters.strategies && filters.strategies.length > 0) ||
-        (filters.programs && filters.programs.length > 0) ||
-        (filters.edges && filters.edges.length > 0)
+        (filters.themes && filters.themes.length > 0)
     ) && data.oiv.length > 0;
 }
 
 function showEmptyState() {
-    const container = document.querySelector('.dashboard-container');
-    if (!container) {
-        console.error('Dashboard container not found');
-        return;
-    }
+    const container = document.getElementById('dashboard-container');
+    if (!container) return;
     
     container.innerHTML = `
         <div class="empty-state">
@@ -210,859 +154,829 @@ function showEmptyState() {
             <p>Для отображения данных выберите органы власти, темы, комплексы или другие фильтры в 3D-визуализации</p>
         </div>
     `;
-    
-    const style = document.createElement('style');
-    style.textContent = `
-        .empty-state {
-            text-align: center;
-            padding: 40px;
-            color: #666;
-            font-family: Arial, sans-serif;
-        }
-        .empty-state h3 {
-            color: #4a6da7;
-            margin-bottom: 15px;
-        }
-        .empty-state p {
-            font-size: 16px;
-            line-height: 1.5;
-        }
-    `;
-    document.head.appendChild(style);
 }
 
-async function createDashboardLayout(data) {
-    const container = document.querySelector('.dashboard-container');
-    if (!container) {
-        console.error('Контейнер дашборда не найден');
-        return;
-    }
+function createDashboardLayout(data) {
+    const container = document.getElementById('dashboard-container');
+    if (!container) return;
     
-    try {
-        await loadChartJS(); 
-
-        if (typeof Chart !== 'undefined' && typeof ChartDataLabels !== 'undefined') {
-            Chart.register(ChartDataLabels);
-        }		
-        container.innerHTML = '';
-        
-        if (data.edges.length === 0 || data.oiv.length === 0) {
-            showEmptyState();
-            return;
-        }
-        
-        container.innerHTML = `
-            <div class="dashboard-layout">
-                <div class="dashboard-header">
-                    <button class="export-btn">Экспорт в Excel</button>
-                </div>
-                <div class="dashboard-content">
-                    <div class="dashboard-left">
-                        <div class="filters-container"></div>
-                        <div class="summary-table-container"></div>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        const style = document.createElement('style');
-        style.textContent = `
-            .dashboard-layout {
-                display: flex;
-                flex-direction: column;
-                width: 100%;
-                gap: 20px;
-            }
-            .dashboard-header {
-                display: flex;
-                gap: 15px;
-                margin-bottom: 20px;
-            }    
-            .dashboard-content {
-                display: flex;
-                width: 100%;
-                gap: 20px;
-            }            
-            .dashboard-left {
-                flex: 1;
-                min-width: 100%;
-                transition: all 0.3s ease;
-            }
-            .filters-container {
-                display: flex;
-                flex-direction: row;
-                gap: 15px;
-                padding: 15px;
-                background-color: transparent;
-                border-radius: 8px;
-                margin-bottom: 20px;
-                flex-wrap: wrap;
-            }
-            .filter-group {
-                flex: 1;
-                min-width: 280px;
-                background-color: rgba(255, 255, 255, 0.8);
-                padding: 15px;
-                border-radius: 6px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            }
-            .filter-group h4 {
-                margin: 0 0 10px 0;
-                color: #4a6da7;
-            }
-            .filter-checkbox {
-                margin-bottom: 6px;
-            }
-            .filter-checkbox label {
-                display: flex;
-                align-items: center;
-                cursor: pointer;
-                font-size: 14px;
-                color: #333;
-            }
-            .filter-checkbox input {
-                margin-right: 8px;
-            }
-            .filter-group ::-webkit-scrollbar {
-                width: 6px;
-            }
-            .filter-group ::-webkit-scrollbar-track {
-                background: #f1f1f1;
-                border-radius: 3px;
-            }
-            .filter-group ::-webkit-scrollbar-thumb {
-                background: #c1c1c1;
-                border-radius: 3px;
-            }
-            .filter-group ::-webkit-scrollbar-thumb:hover {
-                background: #a8a8a8;
-            }
-            .export-btn {
-                padding: 12px 24px;
-                color: white;
-                border: none;
-                border-radius: 6px;
-                cursor: pointer;
-                font-family: 'Arial', sans-serif;
-                font-size: 14px;
-                font-weight: 600;
-                transition: all 0.3s ease;
-                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                background-color: #4a6da7;
-            }
-            .export-btn:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-            }    
-            .export-btn:active {
-                transform: translateY(0);
-                box-shadow: 0 2px 3px rgba(0,0,0,0.1);
-            }            
-            .export-btn::before {
-                content: "";
-                display: inline-block;
-                width: 16px;
-                height: 16px;
-                margin-right: 8px;
-                vertical-align: middle;
-                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='white' viewBox='0 0 16 16'%3E%3Cpath d='M8.5 6.5a.5.5 0 0 0-1 0v3.793L6.354 9.146a.5.5 0 1 0-.708.708l2 2a.5.5 0 0 0 .708 0l2-2a.5.5 0 0 0-.708-.708L8.5 10.293V6.5z'/%3E%3Cpath d='M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5v2z'/%3E%3C/svg%3E");
-                background-repeat: no-repeat;
-                background-position: center;
-            }
-            .summary-table {
-                width: 100%;
-                border-collapse: collapse;
-                margin-top: 20px;
-                font-family: Arial, sans-serif;
-            }
-            .summary-table th, .summary-table td {
-                border: 1px solid #ddd;
-                padding: 12px;
-                text-align: left;
-            }
-            .summary-table th {
-                background-color: #4a6da7;
-                color: white;
-                font-weight: bold;
-            }
-            .summary-table tr:nth-child(even) {
-                background-color: #f2f2f2;
-            }
-            .summary-table tr:hover {
-                background-color: #ddd;
-            }
-            .toggle-icon {
-                cursor: pointer;
-                margin-right: 8px;
-                font-weight: bold;
-                color: #4a6da7;
-                display: inline-block;
-                width: 20px;
-                text-align: center;
-            }
-            .detail-table {
-                width: 100%;
-                border-collapse: collapse;
-                margin: 10px 0;
-                background-color: #f9f9f9;
-            }
-            .detail-table th, .detail-table td {
-                border: 1px solid #ddd;
-                padding: 8px;
-                text-align: left;
-            }
-            .detail-table th {
-                background-color: #e8e8e8;
-                font-weight: bold;
-            }
-            .checkmark {
-                color: #4CAF50;
-                font-weight: bold;
-                font-size: 18px;
-                text-align: center;
-                display: block;
-            }
-            .summary-table-container {
-                width: 100%;
-                margin-bottom: 20px;
-                background-color: #f9f9f9;
-                border: 1px solid #ddd;
-                border-radius: 4px;
-                padding: 20px;
-            }
-        `;
-        document.head.appendChild(style);
-        
-        try {
-            const filtersContainer = container.querySelector('.filters-container');
-            const summaryTableContainer = container.querySelector('.summary-table-container');
-            
-            // Создаем фильтры
-            createFilters(data, filtersContainer);
-            
-            // Создаем сводную таблицу
-            createSummaryTable(data, summaryTableContainer);
-            
-            // Добавляем кнопку экспорта
-            addExportButton(data);
-            
-        } catch (error) {
-            console.error('Ошибка при создании дашборда:', error);
-            container.innerHTML = '<p>Произошла ошибка при загрузке компонентов дашборда</p>';
-        }
-    } catch (error) {
-        console.error('Ошибка при создании дашборда:', error);
-        container.innerHTML = `
-            <div class="error-state">
-                <h3>Ошибка при загрузке компонентов</h3>
-                <p>Пожалуйста, обновите страницу или попробуйте позже.</p>
-                <p>Детали: ${error.message}</p>
-            </div>
-        `;
-    }
+    // Сохраняем данные для использования в фильтрах и экспорте
+    currentData = data;
+    
+    // Очищаем контейнер, но оставляем структуру
+    document.getElementById('themes-table-content').innerHTML = '';
+    document.getElementById('objects-table-content').innerHTML = '';
+    document.getElementById('parameters-table-content').innerHTML = '';
+    document.getElementById('indicators-table-content').innerHTML = '';
+    
+    // Создаем таблицы
+    createThemesTable(data, document.getElementById('themes-table-content'));
+    createObjectsTable(data, document.getElementById('objects-table-content'));
+    createParametersTable(data, document.getElementById('parameters-table-content'));
+    createIndicatorsTable(data, document.getElementById('indicators-table-content'));
 }
 
-function createFilters(data, container) {
-    // Получаем уникальные темы и OIV
-    const themes = [...new Set(data.edges.map(edge => edge.theme))];
-    const sourceOIVs = [...new Set(data.edges.map(edge => edge.source))];
-    const sourceOIVNames = sourceOIVs.map(id => ({
-        id,
-        name: data.oiv.find(oiv => oiv.id === id)?.name || id
-    }));
-
-    // Очищаем контейнер
-    container.innerHTML = '';
-    container.style.display = 'flex';
-    container.style.gap = '20px';
-    container.style.flexWrap = 'wrap';
-    container.style.marginBottom = '20px';
-
-    // Функция для создания выпадающего списка фильтров
-    function createDropdownFilter(title, items, className, allChecked = true) {
-        const dropdownId = `dropdown-${className}`;
-        const dropdownContainer = document.createElement('div');
-        dropdownContainer.className = 'dropdown-filter';
-        dropdownContainer.style.position = 'relative';
-        dropdownContainer.style.marginBottom = '0';
-        dropdownContainer.style.minWidth = '280px';
-
-        // Кнопка для открытия/закрытия dropdown
-        const dropdownBtn = document.createElement('button');
-        dropdownBtn.className = 'dropdown-btn';
-        dropdownBtn.textContent = title;
-        dropdownBtn.style.width = '100%';
-        dropdownBtn.style.padding = '10px 15px';
-        dropdownBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
-        dropdownBtn.style.border = '1px solid #ddd';
-        dropdownBtn.style.borderRadius = '4px';
-        dropdownBtn.style.textAlign = 'left';
-        dropdownBtn.style.cursor = 'pointer';
-        dropdownBtn.style.display = 'flex';
-        dropdownBtn.style.justifyContent = 'space-between';
-        dropdownBtn.style.alignItems = 'center';
-
-        const arrowIcon = document.createElement('span');
-        arrowIcon.textContent = '▼';
-        arrowIcon.style.fontSize = '12px';
-        dropdownBtn.appendChild(arrowIcon);
-
-        // Контейнер для чекбоксов
-        const dropdownContent = document.createElement('div');
-        dropdownContent.id = dropdownId;
-        dropdownContent.className = 'dropdown-content';
-        dropdownContent.style.display = 'none';
-        dropdownContent.style.position = 'absolute';
-        dropdownContent.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
-        dropdownContent.style.border = '1px solid #ddd';
-        dropdownContent.style.borderRadius = '4px';
-        dropdownContent.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
-        dropdownContent.style.zIndex = '1000';
-        dropdownContent.style.width = '100%';
-        dropdownContent.style.maxHeight = '300px';
-        dropdownContent.style.overflowY = 'auto';
-        dropdownContent.style.padding = '10px';
-
-        // Для фильтра ОИВ добавляем чекбокс "Объединить все ОИВ"
-        if (className === 'oiv') {
-            const combineOIVDiv = document.createElement('div');
-            combineOIVDiv.className = 'filter-checkbox';
-            combineOIVDiv.style.marginBottom = '10px';
-            combineOIVDiv.style.paddingBottom = '10px';
-            combineOIVDiv.style.borderBottom = '1px solid #eee';
-
-            const combineOIVLabel = document.createElement('label');
-            combineOIVLabel.style.display = 'flex';
-            combineOIVLabel.style.alignItems = 'center';
-            combineOIVLabel.style.cursor = 'pointer';
-
-            const combineOIVCheckbox = document.createElement('input');
-            combineOIVCheckbox.type = 'checkbox';
-            combineOIVCheckbox.className = 'combine-oiv-checkbox';
-            combineOIVCheckbox.checked = true;
-            combineOIVCheckbox.style.marginRight = '8px';
-
-            combineOIVLabel.appendChild(combineOIVCheckbox);
-            combineOIVLabel.appendChild(document.createTextNode('Все органы власти'));
-            combineOIVDiv.appendChild(combineOIVLabel);
-            dropdownContent.appendChild(combineOIVDiv);
-        }
-
-        // Чекбокс "Выбрать все"
-        const selectAllDiv = document.createElement('div');
-        selectAllDiv.className = 'filter-checkbox';
-        selectAllDiv.style.marginBottom = '10px';
-        selectAllDiv.style.paddingBottom = '10px';
-        selectAllDiv.style.borderBottom = '1px solid #eee';
-
-        const selectAllLabel = document.createElement('label');
-        selectAllLabel.style.display = 'flex';
-        selectAllLabel.style.alignItems = 'center';
-        selectAllLabel.style.cursor = 'pointer';
-
-        const selectAllCheckbox = document.createElement('input');
-        selectAllCheckbox.type = 'checkbox';
-        selectAllCheckbox.className = `all-${className}-checkbox`;
-        selectAllCheckbox.checked = false;
-        selectAllCheckbox.style.marginRight = '8px';
-
-        selectAllLabel.appendChild(selectAllCheckbox);
-        selectAllLabel.appendChild(document.createTextNode('Выбрать все'));
-        selectAllDiv.appendChild(selectAllLabel);
-        dropdownContent.appendChild(selectAllDiv);
-
-        // Добавляем чекбоксы для каждого элемента
-        items.forEach(item => {
-            const itemDiv = document.createElement('div');
-            itemDiv.className = 'filter-checkbox';
-            itemDiv.style.margin = '5px 0';
-
-            const label = document.createElement('label');
-            label.style.display = 'flex';
-            label.style.alignItems = 'center';
-            label.style.cursor = 'pointer';
-
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.className = `${className}-checkbox`;
-            checkbox.value = item.id || item.name || item;
-            checkbox.checked = false;
-            checkbox.style.marginRight = '8px';
-
-            label.appendChild(checkbox);
-            label.appendChild(document.createTextNode(item.name || item));
-            itemDiv.appendChild(label);
-            dropdownContent.appendChild(itemDiv);
-        });
-
-        // Обработчик клика по кнопке
-        dropdownBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const isShowing = dropdownContent.style.display === 'block';
-            dropdownContent.style.display = isShowing ? 'none' : 'block';
-            arrowIcon.textContent = isShowing ? '▼' : '▲';
-        });
-
-        // Закрываем dropdown при клике вне его
-        document.addEventListener('click', (e) => {
-            if (!dropdownContainer.contains(e.target)) {
-                dropdownContent.style.display = 'none';
-                arrowIcon.textContent = '▼';
-            }
-        });
-
-        dropdownContainer.appendChild(dropdownBtn);
-        dropdownContainer.appendChild(dropdownContent);
-        return dropdownContainer;
-    }
-
-    // Создаем выпадающие списки фильтров
-    const oivFilterDropdown = createDropdownFilter('Органы власти', sourceOIVNames, 'oiv');
-    const themeFilterDropdown = createDropdownFilter('Темы', themes, 'theme');
-
-    container.appendChild(oivFilterDropdown);
-    container.appendChild(themeFilterDropdown);
-
-    // Функция для обновления таблицы
-    function updateSummaryTableHandler() {
-        const selectedOIVs = [...oivFilterDropdown.querySelectorAll('.oiv-checkbox:checked')].map(cb => cb.value);
-        const selectedThemes = [...themeFilterDropdown.querySelectorAll('.theme-checkbox:checked')].map(cb => cb.value);
-        
-        // Обновляем сводную таблицу
-        const summaryTableContainer = document.querySelector('.summary-table-container');
-        if (summaryTableContainer) {
-            summaryTableContainer.innerHTML = '';
-            createSummaryTable(data, summaryTableContainer, selectedOIVs, selectedThemes);
-        }
-    }
-
-    // Обработчики событий для чекбоксов "Выбрать все"
-    oivFilterDropdown.querySelector(`.all-oiv-checkbox`).addEventListener('change', function() {
-        const isChecked = this.checked;
-        oivFilterDropdown.querySelectorAll('.oiv-checkbox').forEach(checkbox => {
-            checkbox.checked = isChecked;
-        });
-        updateSummaryTableHandler();
-    });
-    
-    themeFilterDropdown.querySelector(`.all-theme-checkbox`).addEventListener('change', function() {
-        const isChecked = this.checked;
-        themeFilterDropdown.querySelectorAll('.theme-checkbox').forEach(checkbox => {
-            checkbox.checked = isChecked;
-        });
-        updateSummaryTableHandler();
-    });
-    
-    // Обработчики событий для отдельных чекбоксов
-    oivFilterDropdown.querySelectorAll('.oiv-checkbox').forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            const allChecked = [...oivFilterDropdown.querySelectorAll('.oiv-checkbox')].every(cb => cb.checked);
-            oivFilterDropdown.querySelector('.all-oiv-checkbox').checked = allChecked;
-            updateSummaryTableHandler();
-        });
-    });
-    
-    themeFilterDropdown.querySelectorAll('.theme-checkbox').forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            const allChecked = [...themeFilterDropdown.querySelectorAll('.theme-checkbox')].every(cb => cb.checked);
-            themeFilterDropdown.querySelector('.all-theme-checkbox').checked = allChecked;
-            updateSummaryTableHandler();
-        });
-    });
-    
-    // Обработчик для чекбокса "Объединить все ОИВ"
-    const combineOIVCheckbox = oivFilterDropdown.querySelector('.combine-oiv-checkbox');
-    if (combineOIVCheckbox) {
-        combineOIVCheckbox.addEventListener('change', function() {
-            // При включении "Объединить все ОИВ" снимаем выбор с отдельных ОИВ
-            if (this.checked) {
-                oivFilterDropdown.querySelectorAll('.oiv-checkbox').forEach(checkbox => {
-                    checkbox.checked = false;
-                });
-                oivFilterDropdown.querySelector('.all-oiv-checkbox').checked = false;
-            }
-            updateSummaryTableHandler();
-        });
-    }
-    
-    // Инициализируем таблицу с текущими фильтрами
-    updateSummaryTableHandler();
-}
-
-function createSummaryTable(data, container, selectedOIVs = [], selectedThemes = []) {
-    if (!objectsData || !parametersData || !indicatorsData) {
-        container.innerHTML = '<p>Нет данных для отображения</p>';
-        return;
-    }
-
+function createFilters(data) {
     // Получаем уникальные темы
-    const allThemes = [...new Set(data.edges.map(edge => edge.theme))];
-    const themes = selectedThemes.length > 0 ? selectedThemes : allThemes;
+    const themes = [...new Set(data.edges.map(edge => edge.theme))];
+    const themesFilter = document.querySelector('#themes-filter .filter-checkboxes');
+    themesFilter.innerHTML = '';
+    
+    themes.forEach(theme => {
+        const div = document.createElement('div');
+        div.className = 'filter-checkbox';
+        
+        const label = document.createElement('label');
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.value = theme;
+        input.className = 'theme-checkbox';
+        
+        label.appendChild(input);
+        label.appendChild(document.createTextNode(theme));
+        div.appendChild(label);
+        themesFilter.appendChild(div);
+    });
+    
+    // Получаем уникальные OIV (объединенные источники и цели)
+    const allOIVs = new Set();
+    data.edges.forEach(edge => {
+        allOIVs.add(edge.source);
+        allOIVs.add(edge.target);
+    });
+    
+    const oivFilter = document.querySelector('#oiv-filter .filter-checkboxes');
+    oivFilter.innerHTML = '';
+    
+    allOIVs.forEach(oivId => {
+        const oivName = data.oiv.find(oiv => oiv.id === oivId)?.name || oivId;
+        
+        const div = document.createElement('div');
+        div.className = 'filter-checkbox';
+        
+        const label = document.createElement('label');
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.value = oivId;
+        input.className = 'oiv-checkbox';
+        
+        label.appendChild(input);
+        label.appendChild(document.createTextNode(oivName));
+        div.appendChild(label);
+        oivFilter.appendChild(div);
+    });
+    
+    // Добавляем обработчики событий для фильтров
+    document.querySelectorAll('.theme-checkbox, .oiv-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', applyFiltersFromUI);
+    });
+}
 
-    if (themes.length === 0) {
+function applyFiltersFromUI() {
+    const selectedThemes = [...document.querySelectorAll('.theme-checkbox:checked')].map(cb => cb.value);
+    const selectedOIVs = [...document.querySelectorAll('.oiv-checkbox:checked')].map(cb => cb.value);
+    
+    // Сохраняем фильтры в localStorage
+    const filters = {
+        themes: selectedThemes,
+        oivIds: selectedOIVs
+    };
+    localStorage.setItem('dashboardFilters', JSON.stringify(filters));
+    
+    // Перезагружаем данные с новыми фильтрами
+    loadFilteredData(filters);
+}
+
+function clearFilters() {
+    // Очищаем все чекбоксы
+    document.querySelectorAll('.theme-checkbox, .oiv-checkbox').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    
+    // Очищаем localStorage
+    localStorage.removeItem('dashboardFilters');
+    
+    // Показываем пустое состояние
+    showEmptyState();
+}
+
+// Модифицированные функции для создания таблиц с учетом фильтров
+function createThemesTable(data, container) {
+    if (!data.edges || data.edges.length === 0) {
         container.innerHTML = '<p>Нет данных для отображения</p>';
         return;
     }
-
-    // Создаем таблицу
-    const table = document.createElement('table');
-    table.className = 'summary-table';
-
-    // Создаем заголовок таблицы
-    const thead = document.createElement('thead');
-    const headerRow = document.createElement('tr');
     
-    // Добавляем столбцы (убрали столбец "Детали")
-    const themeHeader = document.createElement('th');
-    themeHeader.textContent = 'Тема';
-    themeHeader.style.width = '30%';
-    headerRow.appendChild(themeHeader);
+    // Получаем сохраненные фильтры
+    const savedFilters = JSON.parse(localStorage.getItem('dashboardFilters') || '{}');
+    const filteredThemes = savedFilters.themes || [];
     
-    const objectsHeader = document.createElement('th');
-    objectsHeader.textContent = 'Объекты управления';
-    objectsHeader.style.width = '17.5%';
-    headerRow.appendChild(objectsHeader);
+    // Получаем уникальные темы, отфильтрованные если есть фильтры
+    let themes = [...new Set(data.edges.map(edge => edge.theme))];
+    if (filteredThemes.length > 0) {
+        themes = themes.filter(theme => filteredThemes.includes(theme));
+    }
     
-    const parametersHeader = document.createElement('th');
-    parametersHeader.textContent = 'Параметры';
-    parametersHeader.style.width = '17.5%';
-    headerRow.appendChild(parametersHeader);
-    
-    const indicatorsHeader = document.createElement('th');
-    indicatorsHeader.textContent = 'Показатели';
-    indicatorsHeader.style.width = '17.5%';
-    headerRow.appendChild(indicatorsHeader);
-    
-    const connectionsHeader = document.createElement('th');
-    connectionsHeader.textContent = 'Связи';
-    connectionsHeader.style.width = '17.5%';
-    headerRow.appendChild(connectionsHeader);
-    
-    thead.appendChild(headerRow);
-    table.appendChild(thead);
-
-    // Создаем тело таблицы
-    const tbody = document.createElement('tbody');
-
+    // Создаем таблицы для каждой темы
     themes.forEach(theme => {
-        const row = document.createElement('tr');
+        const themeEdges = data.edges.filter(edge => edge.theme === theme);
         
-        // Ячейка с темой (добавляем кнопку раскрытия перед названием темы)
-        const themeCell = document.createElement('td');
+        if (themeEdges.length === 0) return;
         
-        const toggleButton = document.createElement('span');
-        toggleButton.className = 'toggle-icon';
-        toggleButton.textContent = '+';
-        toggleButton.setAttribute('data-theme', theme);
-        toggleButton.setAttribute('data-expanded', 'false');
+        // Создаем контейнер для таблицы темы с возможностью раскрытия/скрытия
+        const themeContainer = document.createElement('div');
+        themeContainer.className = 'theme-table-container';
         
-        toggleButton.addEventListener('click', function() {
-            const isExpanded = this.getAttribute('data-expanded') === 'true';
-            const theme = this.getAttribute('data-theme');
+        // Заголовок темы с кнопкой раскрытия
+        const themeHeader = document.createElement('div');
+        themeHeader.className = 'theme-header';
+        themeHeader.style.cursor = 'pointer';
+        themeHeader.style.padding = '10px';
+        themeHeader.style.backgroundColor = '#f5f5f5';
+        themeHeader.style.border = '1px solid #ddd';
+        themeHeader.style.marginTop = '10px';
+        themeHeader.style.borderRadius = '4px';
+        themeHeader.style.display = 'flex';
+        themeHeader.style.alignItems = 'center';
+        themeHeader.style.justifyContent = 'space-between';
+        
+        const themeTitle = document.createElement('h4');
+        themeTitle.textContent = `Тема: ${theme}`;
+        themeTitle.style.margin = '0';
+        themeTitle.style.color = '#4a6da7';
+        
+        const toggleIcon = document.createElement('span');
+        toggleIcon.className = 'toggle-icon';
+        toggleIcon.textContent = '+';
+        toggleIcon.style.fontWeight = 'bold';
+        toggleIcon.style.fontSize = '16px';
+        
+        themeHeader.appendChild(themeTitle);
+        themeHeader.appendChild(toggleIcon);
+        themeContainer.appendChild(themeHeader);
+        
+        // Контейнер для содержимого темы (изначально скрыт)
+        const themeContent = document.createElement('div');
+        themeContent.className = 'theme-content';
+        themeContent.style.display = 'none';
+        themeContent.style.padding = '10px';
+        themeContent.style.border = '1px solid #ddd';
+        themeContent.style.borderTop = 'none';
+        themeContent.style.borderRadius = '0 0 4px 4px';
+        
+        // Создаем таблицу
+        const table = document.createElement('table');
+        table.className = 'dashboard-table';
+        table.style.width = '100%'; // Увеличиваем ширину таблицы
+        
+        // Создаем заголовок таблицы
+        const thead = document.createElement('thead');
+        const headerRow = document.createElement('tr');
+        
+        const sourceHeader = document.createElement('th');
+        sourceHeader.textContent = 'Орган власти (Источник)';
+        headerRow.appendChild(sourceHeader);
+        
+        const targetHeader = document.createElement('th');
+        targetHeader.textContent = 'Орган власти (Взаимосвязанный)';
+        headerRow.appendChild(targetHeader);
+        
+        const labelHeader = document.createElement('th');
+        labelHeader.textContent = 'Наименование связи';
+        headerRow.appendChild(labelHeader);
+        
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+        
+        // Создаем тело таблицы
+        const tbody = document.createElement('tbody');
+        
+        themeEdges.forEach(edge => {
+            const row = document.createElement('tr');
             
-            if (isExpanded) {
-                // Скрываем детальную таблицу
-                const detailRow = this.closest('tr').nextElementSibling;
-                if (detailRow && detailRow.classList.contains('detail-row')) {
-                    detailRow.remove();
-                }
-                this.textContent = '+';
-                this.setAttribute('data-expanded', 'false');
+            // Источник
+            const sourceCell = document.createElement('td');
+            const sourceOIV = data.oiv.find(oiv => oiv.id === edge.source);
+            sourceCell.textContent = sourceOIV ? sourceOIV.name : edge.source;
+            row.appendChild(sourceCell);
+            
+            // Цель
+            const targetCell = document.createElement('td');
+            const targetOIV = data.oiv.find(oiv => oiv.id === edge.target);
+            targetCell.textContent = targetOIV ? targetOIV.name : edge.target;
+            row.appendChild(targetCell);
+            
+            // Наименование связи
+            const labelCell = document.createElement('td');
+            labelCell.textContent = edge.label || 'Без названия';
+            row.appendChild(labelCell);
+            
+            tbody.appendChild(row);
+        });
+        
+        table.appendChild(tbody);
+        themeContent.appendChild(table);
+        themeContainer.appendChild(themeContent);
+        container.appendChild(themeContainer);
+        
+        // Добавляем обработчик для раскрытия/скрытия темы
+        themeHeader.addEventListener('click', function() {
+            if (themeContent.style.display === 'none') {
+                themeContent.style.display = 'block';
+                toggleIcon.textContent = '-';
             } else {
-                // Показываем детальную таблицу
-                this.textContent = '-';
-                this.setAttribute('data-expanded', 'true');
-                
-                // Создаем строку с детальной таблицей
-                const detailRow = document.createElement('tr');
-                detailRow.className = 'detail-row';
-                
-                const detailCell = document.createElement('td');
-                detailCell.colSpan = 5; // Изменили на 5 столбцов вместо 6
-                
-                // Создаем детальную таблицу - ИСПРАВЛЕНО: передаем все необходимые параметры
-                const detailTable = createDetailTable(data, theme, selectedOIVs);
-                detailCell.appendChild(detailTable);
-                
-                detailRow.appendChild(detailCell);
-                
-                // Вставляем после текущей строки
-                this.closest('tr').after(detailRow);
+                themeContent.style.display = 'none';
+                toggleIcon.textContent = '+';
             }
         });
-        
-        themeCell.appendChild(toggleButton);
-        themeCell.appendChild(document.createTextNode(` ${theme}`));
-        row.appendChild(themeCell);
-        
-        // Ячейка с объектами управления
-        const objectsCell = document.createElement('td');
-        const objectsCount = countObjectsByTheme(theme, selectedOIVs);
-        objectsCell.textContent = objectsCount;
-        objectsCell.style.textAlign = 'center';
-        row.appendChild(objectsCell);
-        
-        // Ячейка с параметрами
-        const parametersCell = document.createElement('td');
-        const parametersCount = countParametersByTheme(theme, selectedOIVs);
-        parametersCell.textContent = parametersCount;
-        parametersCell.style.textAlign = 'center';
-        row.appendChild(parametersCell);
-        
-        // Ячейка с показателями
-        const indicatorsCell = document.createElement('td');
-        const indicatorsCount = countIndicatorsByTheme(theme, selectedOIVs);
-        indicatorsCell.textContent = indicatorsCount;
-        indicatorsCell.style.textAlign = 'center';
-        row.appendChild(indicatorsCell);
-        
-        // Ячейка со связями
-        const connectionsCell = document.createElement('td');
-        const connectionsCount = countConnectionsByTheme(data, theme, selectedOIVs);
-        connectionsCell.textContent = connectionsCount;
-        connectionsCell.style.textAlign = 'center';
-        row.appendChild(connectionsCell);
-        
-        tbody.appendChild(row);
     });
-
-    table.appendChild(tbody);
-    container.appendChild(table);
 }
 
-function countObjectsByTheme(theme, selectedOIVs = []) {
-    let filteredObjects = objectsData.filter(obj => obj.theme === theme);
-    
-    if (selectedOIVs.length > 0) {
-        filteredObjects = filteredObjects.filter(obj => selectedOIVs.includes(obj.oiv_id));
+function createObjectsTable(data, container) {
+    if (!objectsData || objectsData.length === 0) {
+        container.innerHTML = '<p>Нет данных об объектах управления</p>';
+        return;
     }
     
-    return filteredObjects.length;
-}
-
-function countParametersByTheme(theme, selectedOIVs = []) {
-    let filteredParameters = parametersData.filter(param => param.theme === theme);
+    // Получаем сохраненные фильтры
+    const savedFilters = JSON.parse(localStorage.getItem('dashboardFilters') || '{}');
+    const filteredOIVs = savedFilters.oivIds || [];
+    const filteredThemes = savedFilters.themes || [];
     
-    if (selectedOIVs.length > 0) {
-        // Фильтруем объекты по выбранным OIV, затем параметры по этим объектам
-        const filteredObjectIds = objectsData
-            .filter(obj => selectedOIVs.includes(obj.oiv_id))
-            .map(obj => obj.object_id);
+    // Фильтруем объекты по выбранным OIV и темам
+    let filteredObjects = objectsData;
+    
+    if (filteredOIVs.length > 0) {
+        filteredObjects = filteredObjects.filter(obj => filteredOIVs.includes(obj.oiv_id));
+    }
+    
+    if (filteredThemes.length > 0) {
+        filteredObjects = filteredObjects.filter(obj => filteredThemes.includes(obj.theme));
+    }
+    
+    if (filteredObjects.length === 0) {
+        container.innerHTML = '<p>Нет данных об объектах управления для выбранных фильтров</p>';
+        return;
+    }
+    
+    // Получаем уникальные темы из отфильтрованных объектов управления
+    const themes = [...new Set(filteredObjects.map(obj => obj.theme))];
+    
+    // Создаем таблицы для каждой темы
+    themes.forEach(theme => {
+        const themeObjects = filteredObjects.filter(obj => obj.theme === theme);
         
-        filteredParameters = filteredParameters.filter(param => 
-            filteredObjectIds.includes(param.object_id)
-        );
-    }
-    
-    return filteredParameters.length;
-}
-
-function countIndicatorsByTheme(theme, selectedOIVs = []) {
-    let filteredIndicators = indicatorsData.filter(ind => ind.theme === theme);
-    
-    if (selectedOIVs.length > 0) {
-        filteredIndicators = filteredIndicators.filter(ind => selectedOIVs.includes(ind.oiv_id));
-    }
-    
-    return filteredIndicators.length;
-}
-
-function countConnectionsByTheme(data, theme, selectedOIVs = []) {
-    let filteredEdges = data.edges.filter(edge => edge.theme === theme);
-    
-    if (selectedOIVs.length > 0) {
-        filteredEdges = filteredEdges.filter(edge => selectedOIVs.includes(edge.source));
-    }
-    
-    return filteredEdges.length;
-}
-
-function createDetailTable(data, theme, selectedOIVs = []) {
-    const table = document.createElement('table');
-    table.className = 'detail-table';
-    
-    // Заголовок детальной таблицы
-    const caption = document.createElement('caption');
-    caption.textContent = `Детали по теме: ${theme}`;
-    caption.style.captionSide = 'top';
-    caption.style.fontWeight = 'bold';
-    caption.style.marginBottom = '10px';
-    caption.style.color = '#4a6da7';
-    table.appendChild(caption);
-    
-    // Заголовки столбцов
-    const thead = document.createElement('thead');
-    const headerRow = document.createElement('tr');
-    
-    const headers = ['Тип данных', 'Всего', 'Данные ОИВ', 'Данные ИИ', 'ОИВ и ИИ'];
-    headers.forEach(headerText => {
-        const th = document.createElement('th');
-        th.textContent = headerText;
-        th.style.textAlign = 'center';
-        headerRow.appendChild(th);
-    });
-    
-    thead.appendChild(headerRow);
-    table.appendChild(thead);
-    
-    // Тело таблицы
-    const tbody = document.createElement('tbody');
-    
-    // Строка для объектов управления
-    const objectsRow = createDetailRow('Объекты управления', theme, 'objects', selectedOIVs);
-    tbody.appendChild(objectsRow);
-    
-    // Строка для параметров
-    const parametersRow = createDetailRow('Параметры', theme, 'parameters', selectedOIVs);
-    tbody.appendChild(parametersRow);
-    
-    // Строка для показателей
-    const indicatorsRow = createDetailRow('Показатели', theme, 'indicators', selectedOIVs);
-    tbody.appendChild(indicatorsRow);
-    
-    // Строка для связей
-    const connectionsRow = createDetailRow('Связи', theme, 'connections', selectedOIVs);
-    tbody.appendChild(connectionsRow);
-    
-    table.appendChild(tbody);
-    return table;
-}
-
-function createDetailRow(label, theme, dataType, selectedOIVs = []) {
-    const row = document.createElement('tr');
-    
-    // Ячейка с меткой
-    const labelCell = document.createElement('td');
-    labelCell.textContent = label;
-    labelCell.style.fontWeight = 'bold';
-    row.appendChild(labelCell);
-    
-    // Ячейка с общим количеством
-    const totalCell = document.createElement('td');
-    totalCell.style.textAlign = 'center';
-    row.appendChild(totalCell);
-    
-    // Ячейка с данными ОИВ
-    const oivCell = document.createElement('td');
-    oivCell.style.textAlign = 'center';
-    row.appendChild(oivCell);
-    
-    // Ячейка с данными ИИ
-    const aiCell = document.createElement('td');
-    aiCell.style.textAlign = 'center';
-    row.appendChild(aiCell);
-    
-    // Ячейка с данными ОИВ и ИИ
-    const bothCell = document.createElement('td');
-    bothCell.style.textAlign = 'center';
-    row.appendChild(bothCell);
-    
-    // Заполняем данные в зависимости от типа
-    switch (dataType) {
-        case 'objects':
-            fillObjectsData(totalCell, oivCell, aiCell, bothCell, theme, selectedOIVs);
-            break;
-        case 'parameters':
-            fillParametersData(totalCell, oivCell, aiCell, bothCell, theme, selectedOIVs);
-            break;
-        case 'indicators':
-            fillIndicatorsData(totalCell, oivCell, aiCell, bothCell, theme, selectedOIVs);
-            break;
-        case 'connections':
-            fillConnectionsData(totalCell, oivCell, aiCell, bothCell, data, theme, selectedOIVs);
-            break;
-    }
-    
-    return row;
-}
-
-function fillObjectsData(totalCell, oivCell, aiCell, bothCell, theme, selectedOIVs) {
-    let objects = objectsData.filter(obj => obj.theme === theme);
-    
-    if (selectedOIVs.length > 0) {
-        objects = objects.filter(obj => selectedOIVs.includes(obj.oiv_id));
-    }
-    
-    totalCell.textContent = objects.length;
-    
-    const oivObjects = objects.filter(obj => obj.data_source === 'oiv');
-    const aiObjects = objects.filter(obj => obj.data_source === 'ai');
-    const bothObjects = objects.filter(obj => obj.data_source === 'both');
-    
-    oivCell.textContent = oivObjects.length;
-    aiCell.textContent = aiObjects.length;
-    bothCell.textContent = bothObjects.length;
-}
-
-function fillParametersData(totalCell, oivCell, aiCell, bothCell, theme, selectedOIVs) {
-    let parameters = parametersData.filter(param => param.theme === theme);
-    
-    if (selectedOIVs.length > 0) {
-        // Фильтруем объекты по выбранным OIV, затем параметры по этим объектам
-        const filteredObjectIds = objectsData
-            .filter(obj => selectedOIVs.includes(obj.oiv_id))
-            .map(obj => obj.object_id);
+        if (themeObjects.length === 0) return;
         
-        parameters = parameters.filter(param => 
-            filteredObjectIds.includes(param.object_id)
-        );
-    }
-    
-    totalCell.textContent = parameters.length;
-    
-    const oivParameters = parameters.filter(param => param.data_source === 'oiv');
-    const aiParameters = parameters.filter(param => param.data_source === 'ai');
-    const bothParameters = parameters.filter(param => param.data_source === 'both');
-    
-    oivCell.textContent = oivParameters.length;
-    aiCell.textContent = aiParameters.length;
-    bothCell.textContent = bothParameters.length;
-}
-
-function fillIndicatorsData(totalCell, oivCell, aiCell, bothCell, theme, selectedOIVs) {
-    let indicators = indicatorsData.filter(ind => ind.theme === theme);
-    
-    if (selectedOIVs.length > 0) {
-        indicators = indicators.filter(ind => selectedOIVs.includes(ind.oiv_id));
-    }
-    
-    totalCell.textContent = indicators.length;
-    
-    const oivIndicators = indicators.filter(ind => ind.data_source === 'oiv');
-    const aiIndicators = indicators.filter(ind => ind.data_source === 'ai');
-    const bothIndicators = indicators.filter(ind => ind.data_source === 'both');
-    
-    oivCell.textContent = oivIndicators.length;
-    aiCell.textContent = aiIndicators.length;
-    bothCell.textContent = bothIndicators.length;
-}
-
-function fillConnectionsData(totalCell, oivCell, aiCell, bothCell, data, theme, selectedOIVs) {
-    let connections = data.edges.filter(edge => edge.theme === theme);
-    
-    if (selectedOIVs.length > 0) {
-        connections = connections.filter(edge => selectedOIVs.includes(edge.source));
-    }
-    
-    totalCell.textContent = connections.length;
-    
-    const oivConnections = connections.filter(conn => conn.data_source === 'oiv');
-    const aiConnections = connections.filter(conn => conn.data_source === 'ai');
-    const bothConnections = connections.filter(conn => conn.data_source === 'both');
-    
-    oivCell.textContent = oivConnections.length;
-    aiCell.textContent = aiConnections.length;
-    bothCell.textContent = bothConnections.length;
-}
-
-function addExportButton(data) {
-    const exportBtn = document.querySelector('.export-btn');
-    if (exportBtn) {
-        exportBtn.addEventListener('click', () => {
-            exportDashboardToExcel(data);
+        // Создаем контейнер для таблицы темы с возможностью раскрытия/скрытия
+        const themeContainer = document.createElement('div');
+        themeContainer.className = 'theme-objects-container';
+        
+        // Заголовок темы с кнопкой раскрытия
+        const themeHeader = document.createElement('div');
+        themeHeader.className = 'theme-header';
+        themeHeader.style.cursor = 'pointer';
+        themeHeader.style.padding = '10px';
+        themeHeader.style.backgroundColor = '#f5f5f5';
+        themeHeader.style.border = '1px solid #ddd';
+        themeHeader.style.marginTop = '10px';
+        themeHeader.style.borderRadius = '4px';
+        themeHeader.style.display = 'flex';
+        themeHeader.style.alignItems = 'center';
+        themeHeader.style.justifyContent = 'space-between';
+        
+        const themeTitle = document.createElement('h4');
+        themeTitle.textContent = `Тема: ${theme}`;
+        themeTitle.style.margin = '0';
+        themeTitle.style.color = '#4a6da7';
+        
+        const toggleIcon = document.createElement('span');
+        toggleIcon.className = 'toggle-icon';
+        toggleIcon.textContent = '+';
+        toggleIcon.style.fontWeight = 'bold';
+        toggleIcon.style.fontSize = '16px';
+        
+        themeHeader.appendChild(themeTitle);
+        themeHeader.appendChild(toggleIcon);
+        themeContainer.appendChild(themeHeader);
+        
+        // Контейнер для содержимого темы (изначально скрыт)
+        const themeContent = document.createElement('div');
+        themeContent.className = 'theme-content';
+        themeContent.style.display = 'none';
+        themeContent.style.padding = '10px';
+        themeContent.style.border = '1px solid #ddd';
+        themeContent.style.borderTop = 'none';
+        themeContent.style.borderRadius = '0 0 4px 4px';
+        
+        // Создаем таблицу
+        const table = document.createElement('table');
+        table.className = 'dashboard-table';
+        table.style.width = '100%'; // Увеличиваем ширину таблицы
+        
+        // Создаем заголовок таблицы
+        const thead = document.createElement('thead');
+        const headerRow = document.createElement('tr');
+        
+        const nameHeader = document.createElement('th');
+        nameHeader.textContent = 'Наименование объекта управления';
+        headerRow.appendChild(nameHeader);
+        
+        const oivHeader = document.createElement('th');
+        oivHeader.textContent = 'Орган власти';
+        headerRow.appendChild(oivHeader);
+        
+        const oivDataHeader = document.createElement('th');
+        oivDataHeader.textContent = 'Данные ОИВ';
+        headerRow.appendChild(oivDataHeader);
+        
+        const aiDataHeader = document.createElement('th');
+        aiDataHeader.textContent = 'Данные ИИ';
+        headerRow.appendChild(aiDataHeader);
+        
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+        
+        // Создаем тело таблицы
+        const tbody = document.createElement('tbody');
+        
+        themeObjects.forEach(obj => {
+            const row = document.createElement('tr');
+            
+            const nameCell = document.createElement('td');
+            nameCell.textContent = obj.object_name;
+            row.appendChild(nameCell);
+            
+            const oivCell = document.createElement('td');
+            const oiv = data.oiv.find(o => o.id === obj.oiv_id);
+            oivCell.textContent = oiv ? oiv.name : 'Неизвестный орган';
+            row.appendChild(oivCell);
+            
+            const oivDataCell = document.createElement('td');
+            // Данные ОИВ (info_type = 1)
+            oivDataCell.innerHTML = obj.info_type === 1 ? '<span class="checkmark">✓</span>' : '';
+            row.appendChild(oivDataCell);
+            
+            const aiDataCell = document.createElement('td');
+            // Данные ИИ (info_type = 2 ИЛИ есть AI_object_id)
+            const hasAIData = obj.info_type === 2 || obj.AI_object_id !== null;
+            aiDataCell.innerHTML = hasAIData ? '<span class="checkmark">✓</span>' : '';
+            row.appendChild(aiDataCell);
+            
+            tbody.appendChild(row);
         });
+        
+        table.appendChild(tbody);
+        themeContent.appendChild(table);
+        themeContainer.appendChild(themeContent);
+        container.appendChild(themeContainer);
+        
+        // Добавляем обработчик для раскрытия/скрытия темы
+        themeHeader.addEventListener('click', function() {
+            if (themeContent.style.display === 'none') {
+                themeContent.style.display = 'block';
+                toggleIcon.textContent = '-';
+            } else {
+                themeContent.style.display = 'none';
+                toggleIcon.textContent = '+';
+            }
+        });
+    });
+}
+
+function createParametersTable(data, container) {
+    if (!parametersData || parametersData.length === 0) {
+        container.innerHTML = '<p>Нет данных о параметрах объектов управления</p>';
+        return;
     }
+    
+    // Получаем сохраненные фильтры
+    const savedFilters = JSON.parse(localStorage.getItem('dashboardFilters') || '{}');
+    const filteredOIVs = savedFilters.oivIds || [];
+    const filteredThemes = savedFilters.themes || [];
+    
+    // Фильтруем параметры по выбранным OIV и темам
+    let filteredParameters = parametersData;
+    
+    if (filteredOIVs.length > 0) {
+        filteredParameters = filteredParameters.filter(param => filteredOIVs.includes(param.oiv_id));
+    }
+    
+    if (filteredThemes.length > 0) {
+        filteredParameters = filteredParameters.filter(param => filteredThemes.includes(param.theme));
+    }
+    
+    if (filteredParameters.length === 0) {
+        container.innerHTML = '<p>Нет данных о параметрах для выбранных фильтров</p>';
+        return;
+    }
+    
+    // Получаем уникальные темы из отфильтрованных параметров
+    const themes = [...new Set(filteredParameters.map(param => param.theme))];
+    
+    // Создаем таблицы для каждой темы
+    themes.forEach(theme => {
+        const themeParameters = filteredParameters.filter(param => param.theme === theme);
+        
+        if (themeParameters.length === 0) return;
+        
+        // Создаем контейнер для таблицы темы с возможностью раскрытия/скрытия
+        const themeContainer = document.createElement('div');
+        themeContainer.className = 'theme-parameters-container';
+        
+        // Заголовок темы с кнопкой раскрытия
+        const themeHeader = document.createElement('div');
+        themeHeader.className = 'theme-header';
+        themeHeader.style.cursor = 'pointer';
+        themeHeader.style.padding = '10px';
+        themeHeader.style.backgroundColor = '#f5f5f5';
+        themeHeader.style.border = '1px solid #ddd';
+        themeHeader.style.marginTop = '10px';
+        themeHeader.style.borderRadius = '4px';
+        themeHeader.style.display = 'flex';
+        themeHeader.style.alignItems = 'center';
+        themeHeader.style.justifyContent = 'space-between';
+        
+        const themeTitle = document.createElement('h4');
+        themeTitle.textContent = `Тема: ${theme}`;
+        themeTitle.style.margin = '0';
+        themeTitle.style.color = '#4a6da7';
+        
+        const toggleIcon = document.createElement('span');
+        toggleIcon.className = 'toggle-icon';
+        toggleIcon.textContent = '+';
+        toggleIcon.style.fontWeight = 'bold';
+        toggleIcon.style.fontSize = '16px';
+        
+        themeHeader.appendChild(themeTitle);
+        themeHeader.appendChild(toggleIcon);
+        themeContainer.appendChild(themeHeader);
+        
+        // Контейнер для содержимого темы (изначально скрыт)
+        const themeContent = document.createElement('div');
+        themeContent.className = 'theme-content';
+        themeContent.style.display = 'none';
+        themeContent.style.padding = '10px';
+        themeContent.style.border = '1px solid #ddd';
+        themeContent.style.borderTop = 'none';
+        themeContent.style.borderRadius = '0 0 4px 4px';
+        
+        // Создаем таблицу
+        const table = document.createElement('table');
+        table.className = 'dashboard-table';
+        table.style.width = '100%'; // Увеличиваем ширину таблицы
+        
+        // Создаем заголовок таблицы
+        const thead = document.createElement('thead');
+        const headerRow = document.createElement('tr');
+        
+        const nameHeader = document.createElement('th');
+        nameHeader.textContent = 'Наименование параметра';
+        headerRow.appendChild(nameHeader);
+        
+        const objectHeader = document.createElement('th');
+        objectHeader.textContent = 'Объект управления';
+        headerRow.appendChild(objectHeader);
+        
+        const oivHeader = document.createElement('th');
+        oivHeader.textContent = 'Орган власти';
+        headerRow.appendChild(oivHeader);
+        
+        const oivDataHeader = document.createElement('th');
+        oivDataHeader.textContent = 'Данные ОИВ';
+        headerRow.appendChild(oivDataHeader);
+        
+        const aiDataHeader = document.createElement('th');
+        aiDataHeader.textContent = 'Данные ИИ';
+        headerRow.appendChild(aiDataHeader);
+        
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+        
+        // Создаем тело таблицы
+        const tbody = document.createElement('tbody');
+        
+        themeParameters.forEach(param => {
+            const row = document.createElement('tr');
+            
+            const nameCell = document.createElement('td');
+            nameCell.textContent = param.parameter_name;
+            row.appendChild(nameCell);
+            
+            const objectCell = document.createElement('td');
+            const object = objectsData.find(obj => obj.object_id === param.object_id);
+            objectCell.textContent = object ? object.object_name : 'Неизвестный объект';
+            row.appendChild(objectCell);
+            
+            const oivCell = document.createElement('td');
+            const oiv = data.oiv.find(o => o.id === param.oiv_id);
+            oivCell.textContent = oiv ? oiv.name : 'Неизвестный орган';
+            row.appendChild(oivCell);
+            
+            const oivDataCell = document.createElement('td');
+            // Данные ОИВ (info_type = 1)
+            oivDataCell.innerHTML = param.info_type === 1 ? '<span class="checkmark">✓</span>' : '';
+            row.appendChild(oivDataCell);
+            
+            const aiDataCell = document.createElement('td');
+            // Данные ИИ (info_type = 2 ИЛИ есть AI_parameter_id)
+            const hasAIData = param.info_type === 2 || (param.AI_parameter_id !== null && param.AI_parameter_id !== undefined);
+            aiDataCell.innerHTML = hasAIData ? '<span class="checkmark">✓</span>' : '';
+            row.appendChild(aiDataCell);
+            
+            tbody.appendChild(row);
+        });
+        
+        table.appendChild(tbody);
+        themeContent.appendChild(table);
+        themeContainer.appendChild(themeContent);
+        container.appendChild(themeContainer);
+        
+        // Добавляем обработчик для раскрытия/скрытия темы
+        themeHeader.addEventListener('click', function() {
+            if (themeContent.style.display === 'none') {
+                themeContent.style.display = 'block';
+                toggleIcon.textContent = '-';
+            } else {
+                themeContent.style.display = 'none';
+                toggleIcon.textContent = '+';
+            }
+        });
+    });
+}
+
+function createIndicatorsTable(data, container) {
+    if (!indicatorsData || indicatorsData.length === 0) {
+        container.innerHTML = '<p>Нет данных о показателях для выбранных фильтров</p>';
+        return;
+    }
+    
+    // Получаем сохраненные фильтры
+    const savedFilters = JSON.parse(localStorage.getItem('dashboardFilters') || '{}');
+    const filteredOIVs = savedFilters.oivIds || [];
+    const filteredThemes = savedFilters.themes || [];
+    
+    // Фильтруем показатели по выбранным OIV и темам
+    let filteredIndicators = indicatorsData;
+    
+    if (filteredOIVs.length > 0) {
+        filteredIndicators = filteredIndicators.filter(indicator => filteredOIVs.includes(indicator.oiv_id));
+    }
+    
+    if (filteredThemes.length > 0) {
+        filteredIndicators = filteredIndicators.filter(indicator => filteredThemes.includes(indicator.theme));
+    }
+    
+    if (filteredIndicators.length === 0) {
+        container.innerHTML = '<p>Нет данных о показателях для выбранных фильтров</p>';
+        return;
+    }
+    
+    // Получаем уникальные темы из отфильтрованных показателей
+    const themes = [...new Set(filteredIndicators.map(indicator => indicator.theme))];
+    
+    // Создаем таблицы для каждой темы
+    themes.forEach(theme => {
+        const themeIndicators = filteredIndicators.filter(indicator => indicator.theme === theme);
+        
+        if (themeIndicators.length === 0) return;
+        
+        // Создаем контейнер для таблицы темы с возможностью раскрытия/скрытия
+        const themeContainer = document.createElement('div');
+        themeContainer.className = 'theme-indicators-container';
+        
+        // Заголовок темы с кнопкой раскрытия
+        const themeHeader = document.createElement('div');
+        themeHeader.className = 'theme-header';
+        themeHeader.style.cursor = 'pointer';
+        themeHeader.style.padding = '10px';
+        themeHeader.style.backgroundColor = '#f5f5f5';
+        themeHeader.style.border = '1px solid #ddd';
+        themeHeader.style.marginTop = '10px';
+        themeHeader.style.borderRadius = '4px';
+        themeHeader.style.display = 'flex';
+        themeHeader.style.alignItems = 'center';
+        themeHeader.style.justifyContent = 'space-between';
+        
+        const themeTitle = document.createElement('h4');
+        themeTitle.textContent = `Тема: ${theme}`;
+        themeTitle.style.margin = '0';
+        themeTitle.style.color = '#4a6da7';
+        
+        const toggleIcon = document.createElement('span');
+        toggleIcon.className = 'toggle-icon';
+        toggleIcon.textContent = '+';
+        toggleIcon.style.fontWeight = 'bold';
+        toggleIcon.style.fontSize = '16px';
+        
+        themeHeader.appendChild(themeTitle);
+        themeHeader.appendChild(toggleIcon);
+        themeContainer.appendChild(themeHeader);
+        
+        // Контейнер для содержимого темы (изначально скрыт)
+        const themeContent = document.createElement('div');
+        themeContent.className = 'theme-content';
+        themeContent.style.display = 'none';
+        themeContent.style.padding = '10px';
+        themeContent.style.border = '1px solid #ddd';
+        themeContent.style.borderTop = 'none';
+        themeContent.style.borderRadius = '0 0 4px 4px';
+        
+        // Создаем таблицу
+        const table = document.createElement('table');
+        table.className = 'dashboard-table';
+        table.style.width = '100%'; // Увеличиваем ширину таблицы
+        
+        // Создаем заголовок таблицы
+        const thead = document.createElement('thead');
+        const headerRow = document.createElement('tr');
+        
+        const nameHeader = document.createElement('th');
+        nameHeader.textContent = 'Наименование показателя';
+        headerRow.appendChild(nameHeader);
+        
+        const objectHeader = document.createElement('th');
+        objectHeader.textContent = 'Объект управления';
+        headerRow.appendChild(objectHeader);
+        
+        const oivHeader = document.createElement('th');
+        oivHeader.textContent = 'Орган власти';
+        headerRow.appendChild(oivHeader);
+        
+        const valueHeader = document.createElement('th');
+        valueHeader.textContent = 'Значение';
+        headerRow.appendChild(valueHeader);
+        
+        const unitHeader = document.createElement('th');
+        unitHeader.textContent = 'Единица измерения';
+        headerRow.appendChild(unitHeader);
+        
+        const periodHeader = document.createElement('th');
+        periodHeader.textContent = 'Период';
+        headerRow.appendChild(periodHeader);
+        
+        const oivDataHeader = document.createElement('th');
+        oivDataHeader.textContent = 'Данные ОИВ';
+        headerRow.appendChild(oivDataHeader);
+        
+        const aiDataHeader = document.createElement('th');
+        aiDataHeader.textContent = 'Данные ИИ';
+        headerRow.appendChild(aiDataHeader);
+        
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+        
+        // Создаем тело таблицы
+        const tbody = document.createElement('tbody');
+        
+        themeIndicators.forEach(indicator => {
+            const row = document.createElement('tr');
+            
+            const nameCell = document.createElement('td');
+            nameCell.textContent = indicator.indicator_name;
+            row.appendChild(nameCell);
+            
+            const objectCell = document.createElement('td');
+            const object = objectsData.find(obj => obj.object_id === indicator.object_id);
+            objectCell.textContent = object ? object.object_name : 'Неизвестный объект';
+            row.appendChild(objectCell);
+            
+            const oivCell = document.createElement('td');
+            const oiv = data.oiv.find(o => o.id === indicator.oiv_id);
+            oivCell.textContent = oiv ? oiv.name : 'Неизвестный орган';
+            row.appendChild(oivCell);
+            
+            const valueCell = document.createElement('td');
+            valueCell.textContent = indicator.value || 'Нет данных';
+            row.appendChild(valueCell);
+            
+            const unitCell = document.createElement('td');
+            unitCell.textContent = indicator.unit || 'Не указано';
+            row.appendChild(unitCell);
+            
+            const periodCell = document.createElement('td');
+            periodCell.textContent = indicator.period || 'Не указано';
+            row.appendChild(periodCell);
+            
+            const oivDataCell = document.createElement('td');
+            // Данные ОИВ (info_type = 1)
+            oivDataCell.innerHTML = indicator.info_type === 1 ? '<span class="checkmark">✓</span>' : '';
+            row.appendChild(oivDataCell);
+            
+            const aiDataCell = document.createElement('td');
+            // Данные ИИ (info_type = 2 ИЛИ есть AI_indicator_id)
+            const hasAIData = indicator.info_type === 2 || (indicator.AI_indicator_id !== null && indicator.AI_indicator_id !== undefined);
+            aiDataCell.innerHTML = hasAIData ? '<span class="checkmark">✓</span>' : '';
+            row.appendChild(aiDataCell);
+            
+            tbody.appendChild(row);
+        });
+        
+        table.appendChild(tbody);
+        themeContent.appendChild(table);
+        themeContainer.appendChild(themeContent);
+        container.appendChild(themeContainer);
+        
+        // Добавляем обработчик для раскрытия/скрытия темы
+        themeHeader.addEventListener('click', function() {
+            if (themeContent.style.display === 'none') {
+                themeContent.style.display = 'block';
+                toggleIcon.textContent = '-';
+            } else {
+                themeContent.style.display = 'none';
+                toggleIcon.textContent = '+';
+            }
+        });
+    });
+}
+
+// Функция экспорта в Excel
+function exportDashboardToExcel(data, fileName = 'dashboard_export') {
+    // Проверяем, загружена ли библиотека XLSX
+    if (typeof XLSX === 'undefined') {
+        alert('Библиотека экспорта не загружена');
+        return;
+    }
+    
+    // Создаем новую рабочую книгу
+    const wb = XLSX.utils.book_new();
+    
+    // Создаем лист с темами
+    if (data.edges && data.edges.length > 0) {
+        const themesData = data.edges.map(edge => {
+            const sourceOIV = data.oiv.find(oiv => oiv.id === edge.source);
+            const targetOIV = data.oiv.find(oiv => oiv.id === edge.target);
+            
+            return {
+                'Тема': edge.theme,
+                'Орган власти (Источник)': sourceOIV ? sourceOIV.name : edge.source,
+                'Орган власти (Цель)': targetOIV ? targetOIV.name : edge.target,
+                'Наименование связи': edge.label || 'Без названия'
+            };
+        });
+        
+        const themesWs = XLSX.utils.json_to_sheet(themesData);
+        XLSX.utils.book_append_sheet(wb, themesWs, 'Темы');
+    }
+    
+    // Создаем лист с объектами управления
+    if (objectsData && objectsData.length > 0) {
+        const objectsDataForExport = objectsData.map(obj => {
+            const oiv = data.oiv.find(o => o.id === obj.oiv_id);
+            
+            return {
+                'Тема': obj.theme,
+                'Наименование объекта управления': obj.object_name,
+                'Орган власти': oiv ? oiv.name : 'Неизвестный орган',
+                'Данные ОИВ': obj.info_type === 1 ? '✓' : '',
+                'Данные ИИ': (obj.info_type === 2 || obj.AI_object_id !== null) ? '✓' : ''
+            };
+        });
+        
+        const objectsWs = XLSX.utils.json_to_sheet(objectsDataForExport);
+        XLSX.utils.book_append_sheet(wb, objectsWs, 'Объекты управления');
+    }
+    
+    // Создаем лист с параметрами
+    if (parametersData && parametersData.length > 0) {
+        const parametersDataForExport = parametersData.map(param => {
+            const object = objectsData.find(obj => obj.object_id === param.object_id);
+            const oiv = data.oiv.find(o => o.id === param.oiv_id);
+            
+            return {
+                'Тема': param.theme,
+                'Наименование параметра': param.parameter_name,
+                'Объект управления': object ? object.object_name : 'Неизвестный объект',
+                'Орган власти': oiv ? oiv.name : 'Неизвестный орган',
+                'Данные ОИВ': param.info_type === 1 ? '✓' : '',
+                'Данные ИИ': (param.info_type === 2 || (param.AI_parameter_id !== null && param.AI_parameter_id !== undefined)) ? '✓' : ''
+            };
+        });
+        
+        const parametersWs = XLSX.utils.json_to_sheet(parametersDataForExport);
+        XLSX.utils.book_append_sheet(wb, parametersWs, 'Параметры');
+    }
+    
+    // Создаем лист с показателями
+    if (indicatorsData && indicatorsData.length > 0) {
+        const indicatorsDataForExport = indicatorsData.map(indicator => {
+            const object = objectsData.find(obj => obj.object_id === indicator.object_id);
+            const oiv = data.oiv.find(o => o.id === indicator.oiv_id);
+            
+            return {
+                'Тема': indicator.theme,
+                'Наименование показателя': indicator.indicator_name,
+                'Объект управления': object ? object.object_name : 'Неизвестный объект',
+                'Орган власти': oiv ? oiv.name : 'Неизвестный орган',
+                'Данные ОИВ': indicator.info_type === 1 ? '✓' : '',
+                'Данные ИИ': (indicator.info_type === 2 || (indicator.AI_indicator_id !== null && indicator.AI_indicator_id !== undefined)) ? '✓' : ''
+            };
+        });
+        
+        const indicatorsWs = XLSX.utils.json_to_sheet(indicatorsDataForExport);
+        XLSX.utils.book_append_sheet(wb, indicatorsWs, 'Показатели');
+    }
+    
+    // Сохраняем файл
+    XLSX.writeFile(wb, `${fileName}.xlsx`);
 }

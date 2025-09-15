@@ -156,7 +156,7 @@ class VoiceAssistant {
             padding: 15px 20px;
             border-radius: 5px;
             z-index: 10000;
-            font-family: Arial, sans-serif;
+            font-family: 'Clarendon URW', 'Arial', sans-serif;
             font-size: 14px;
         `;
         notification.textContent = message;

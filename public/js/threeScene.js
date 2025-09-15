@@ -64,7 +64,7 @@ function createTooltip() {
     tooltip.style.background = 'rgba(0, 0, 0, 0.8)';
     tooltip.style.color = 'white';
     tooltip.style.borderRadius = '4px';
-    tooltip.style.fontFamily = 'Arial, sans-serif';
+    tooltip.style.fontFamily = 'Clarendon URW', 'Arial', 'sans-serif';
     tooltip.style.fontSize = '14px';
     tooltip.style.pointerEvents = 'none';
     tooltip.style.zIndex = '100';

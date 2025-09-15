@@ -1,6 +1,6 @@
 /* Общие стили */
 body {
-    font-family: 'Arial', sans-serif;
+    font-family: 'Clarendon URW', 'Arial', sans-serif;
     margin: 0;
     padding: 0;
     background-color: #000000;
@@ -816,7 +816,7 @@ canvas {
     height: 16px;
 }
 #search-results {
-    font-family: Arial, sans-serif;
+    font-family: 'Clarendon URW', 'Arial', sans-serif;
     font-size: 14px;
 }
 

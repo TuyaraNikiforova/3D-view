@@ -18,7 +18,7 @@
     "three": "^0.158.0",
     "three-fbx-loader": "^1.0.3",
     "three-orbitcontrols": "^2.110.2",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.19.3"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"

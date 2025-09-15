@@ -9,7 +9,7 @@ const DETAILS_STYLE = `
     border-radius: 8px;
     padding: 15px;
     color: #e0e0e0;
-    font-family: Arial, sans-serif;
+    font-family: 'Clarendon URW', 'Arial', sans-serif;
     font-size: 14px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
     z-index: 100;
