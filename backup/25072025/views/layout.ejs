@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <header>
+        <div class="search-container">
+            <input type="text" id="global-search" placeholder="Search...">
+        </div>
+		<nav>
+			<ul>
+				<li><a href="/" class="tab-link <%= activeTab === '3d-view' ? 'active' : '' %>" data-tab="3d-view">3D-графика</a></li>
+				<li><a href="/table-view" class="tab-link <%= activeTab === 'table-view' ? 'active' : '' %>" data-tab="table-view">Таблица связей</a></li>
+				<li><a href="/dashboard" class="tab-link <%= activeTab === 'dashboard' ? 'active' : '' %>" data-tab="dashboard">Дашборд</a></li>
+			</ul>
+		</nav>
+    </header>
+    
+    <main id="main-content">
+        <%- body %>
+    </main>
+
+    <!-- Подключение скриптов -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
+
+    <script src="/js/threeScene.js" type="module"></script>
+    <script src="/js/main.js" type="module"></script>
+    <script src="/js/filters.js"></script>
+	<script src="/js/export.js"></script>
+</body>
+</html>

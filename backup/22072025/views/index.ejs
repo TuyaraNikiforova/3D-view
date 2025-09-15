@@ -1,0 +1,100 @@
+<div class="container">
+    <div class="main-content">
+        <!-- Основное содержимое (3D сцена, таблица или дашборд) -->
+        <div id="canvas-container"></div>
+        <div id="3d-view" class="tab-content"></div>
+        <div class="controls">
+            <button id="zoom-in">+</button>
+            <button id="zoom-out">-</button>
+            <button id="rotate">↻</button>
+        </div>
+        <div id="info-panel" class="hidden">
+            <button id="close-info">×</button>
+            <h3>Object Info</h3>
+            <div id="info-content"></div>
+        </div>
+    </div>
+    
+    <div class="sidebar">
+        <form id="filter-form">
+            <div class="filter-actions">
+                <button type="button" id="back-btn" style="display: none;">Назад</button>
+            </div>    
+            <div class="filter-group">
+                <h3>Комплексы</h3>
+                <div id="complex-filters"></div>
+            </div>
+            
+            <div class="filter-group">
+                <h3>Органы власти</h3>
+                <div id="oiv-filters"></div>
+            </div>
+            
+            <div class="filter-group">
+                <h3>Темы</h3>
+                <div id="theme-filters"></div>
+            </div>
+            
+            <div class="filter-group">
+                <h3>Стратегии</h3>
+                <div id="strategy-filters"></div>
+            </div>
+            
+            <div class="filter-group">
+                <h3>Гос.программы</h3>
+                <div id="program-filters"></div>
+            </div>
+            
+            <div class="filter-group">
+                <h3>Проекты</h3>
+                <div id="project-filters"></div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    /* Стили для вкладок */
+    .tab-link.active {
+        background-color: rgba(74, 109, 167, 0.5);
+    }
+    
+    .tab-content {
+        display: none;
+        padding: 1rem;
+    }
+    
+    .tab-content.active {
+        display: block;
+    }
+    
+    .hidden {
+        display: none;
+    }
+</style>
+
+<script>
+    // Инициализация активной вкладки
+    document.addEventListener('DOMContentLoaded', function() {
+        const backBtn = document.getElementById('back-btn');
+        if (backBtn) {
+            backBtn.addEventListener('click', function() {
+                // Сбрасываем фильтры
+                document.getElementById('filter-form').reset();
+                
+                // Сбрасываем 3D сцену
+                if (window.resetSelection) {
+                    window.resetSelection();
+                }
+                
+                // Обновляем представления
+                if (window.applyFilters) {
+                    window.applyFilters();
+                }
+                
+                // Скрываем кнопку "Назад"
+                this.style.display = 'none';
+            });
+        }
+    });
+</script>

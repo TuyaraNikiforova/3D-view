@@ -1,0 +1,24 @@
+<% content_for('content') do %>
+    <div class="container">
+        <div class="tab-content active" id="3d-view">
+            <div class="main-content">
+                <div id="canvas-container"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script type="module">
+        import { init3DScene } from '/js/threeScene.js';
+        document.addEventListener('DOMContentLoaded', () => {
+            init3DScene();
+            
+            // Гарантируем, что поиск виден при загрузке 3D-вкладки
+            const searchContainer = document.getElementById('search-container');
+            if (searchContainer) {
+                searchContainer.style.display = 'block';
+            }
+        });
+    </script>
+<% end %>
+
+<%- include('layout', { activeTab: '3d-view' }) %>

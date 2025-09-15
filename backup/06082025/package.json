@@ -1,0 +1,24 @@
+{
+  "name": "gov-visualization",
+  "version": "1.0.0",
+  "description": "3D Visualization of Government Structures",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "ejs": "^3.1.9",
+    "express": "^4.18.2",
+    "express-ejs-layouts": "^2.5.1",
+    "three": "^0.158.0",
+    "three-fbx-loader": "^1.0.3",
+    "three-orbitcontrols": "^2.110.2",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}

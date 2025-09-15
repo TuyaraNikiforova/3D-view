@@ -1,0 +1,37 @@
+<% content_for('content') do %>
+    <header>
+        <div class="header-content">
+            <h1>3D Визуализация</h1>
+            <div class="global-search-container">
+                <div class="search-container">
+                    <input type="text" id="global-search" placeholder="Поиск по всем элементам...">
+                    <div class="search-results" id="search-results"></div>
+                </div>
+                <button id="clear-search">Очистить</button>
+            </div>
+        </div>
+    </header>
+    <div class="container">
+        <div class="tab-content active" id="3d-view">
+            <div class="main-content">
+                <div id="canvas-container"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script type="module">
+        import { init3DScene, nodeMeshes, edgeArrows, complexSpheres, indicatorGroups } from '/js/threeScene.js';
+        import { initSearch } from '/js/search.js';
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            init3DScene();
+            
+            // Подождать пока сцена загрузится
+            setTimeout(() => {
+                initSearch(nodeMeshes, edgeArrows, complexSpheres, indicatorGroups, data);
+            }, 1000);
+        });
+    </script>
+<% end %>
+
+<%- include('layout', { activeTab: '3d-view' }) %>

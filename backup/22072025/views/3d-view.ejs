@@ -1,0 +1,22 @@
+<% content_for('content') do %>
+    <div class="container">
+     
+        <div class="main-content">
+            <div id="canvas-container"></div>
+            <div class="controls">
+                <button id="zoom-in">+</button>
+                <button id="zoom-out">-</button>
+            </div>
+            
+            <div id="info-panel" class="hidden">
+                <button id="close-info">×</button>
+                <h3 id="info-title"></h3>
+                <div id="info-content"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/js/threeScene.js"></script>
+<% end %>
+
+<%- include('layout') %>

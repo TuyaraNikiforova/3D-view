@@ -1,0 +1,58 @@
+<div class="container">
+    <div class="main-content">
+        <div id="canvas-container"></div>
+        <div class="controls">
+            <button id="zoom-in">+</button>
+            <button id="zoom-out">-</button>
+        </div>
+        <div id="info-panel" class="hidden">
+            <button id="close-info">×</button>
+            <h3>Object Info</h3>
+            <div id="info-content"></div>
+        </div>
+    </div>
+    
+    <div class="sidebar">
+        <form id="filter-form">
+            <div class="filter-actions">
+                <button type="button" id="back-btn" style="display: none;">Назад</button>
+            </div>    
+            <div class="filter-group">
+                <h3>Комплексы</h3>
+                <div id="complex-filters"></div>
+            </div>
+            
+            <div class="filter-group">
+                <h3>Органы власти</h3>
+                <div id="oiv-filters"></div>
+            </div>
+            
+            <div class="filter-group">
+                <h3>Темы</h3>
+                <div id="theme-filters"></div>
+            </div>
+            
+            <div class="filter-group">
+                <h3>Стратегии</h3>
+                <div id="strategy-filters"></div>
+            </div>
+            
+            <div class="filter-group">
+                <h3>Гос.программы</h3>
+                <div id="program-filters"></div>
+            </div>
+            
+            <div class="filter-group">
+                <h3>Проекты</h3>
+                <div id="project-filters"></div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script type="module">
+    import { init3DScene } from '/js/threeScene.js';
+    document.addEventListener('DOMContentLoaded', () => {
+        init3DScene();
+    });
+</script>

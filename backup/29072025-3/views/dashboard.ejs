@@ -1,0 +1,27 @@
+<% content_for('content') do %>
+    <div class="dashboard-container">
+        <h1>Government Performance Dashboard</h1>
+        
+        <div class="dashboard-grid">
+            <div class="chart-container">
+                <h2>Department Indicators</h2>
+                <canvas id="indicators-chart"></canvas>
+            </div>
+            
+            <div class="chart-container">
+                <h2>Strategic Goals</h2>
+                <canvas id="strategies-chart"></canvas>
+            </div>
+            
+            <div class="chart-container wide">
+                <h2>Connections by Topic</h2>
+                <canvas id="topics-chart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/js/dashboard.js"></script>
+<% end %>
+
+<%- include('layout') %>

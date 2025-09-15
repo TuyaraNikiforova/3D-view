@@ -1,0 +1,458 @@
+[
+  {
+    "id": 1,
+    "program_id": "prog001",
+    "oiv_id": "OIV001",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 2,
+    "program_id": "prog002",
+    "oiv_id": "OIV002",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 3,
+    "program_id": "prog003",
+    "oiv_id": "OIV003",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 4,
+    "program_id": "prog004",
+    "oiv_id": "OIV004",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 5,
+    "program_id": "prog005",
+    "oiv_id": "OIV005",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 6,
+    "program_id": "prog006",
+    "oiv_id": "OIV006",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 7,
+    "program_id": "prog007",
+    "oiv_id": "OIV007",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 8,
+    "program_id": "prog008",
+    "oiv_id": "OIV008",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 9,
+    "program_id": "prog009",
+    "oiv_id": "OIV009",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 10,
+    "program_id": "prog010",
+    "oiv_id": "OIV010",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 11,
+    "program_id": "prog011",
+    "oiv_id": "OIV011",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 12,
+    "program_id": "prog012",
+    "oiv_id": "OIV012",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 13,
+    "program_id": "prog013",
+    "oiv_id": "OIV013",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 14,
+    "program_id": "prog014",
+    "oiv_id": "OIV014",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 15,
+    "program_id": "prog015",
+    "oiv_id": "OIV015",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 16,
+    "program_id": "prog016",
+    "oiv_id": "OIV016",
+    "strategy_id": "str016",
+    "program_type": 0.0,
+    "name": "Безопасный город"
+  },
+  {
+    "id": 17,
+    "program_id": "prog016",
+    "oiv_id": "OIV016",
+    "strategy_id": "str016",
+    "program_type": 1.0,
+    "name": "Предупреждение чрезвычайных ситуаций, развитие гражданской обороны, защита населения и территорий города Москвы от чрезвычайных ситуаций природного и техногенного характера, обеспечение пожарной безопасности и безопасности людей на водных объектах"
+  },
+  {
+    "id": 18,
+    "program_id": "prog017",
+    "oiv_id": "OIV017",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 19,
+    "program_id": "prog018",
+    "oiv_id": "OIV018",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 20,
+    "program_id": "prog019",
+    "oiv_id": "OIV019",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 21,
+    "program_id": "prog020",
+    "oiv_id": "OIV020",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 22,
+    "program_id": "prog021",
+    "oiv_id": "OIV021",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 23,
+    "program_id": "prog022",
+    "oiv_id": "OIV022",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 24,
+    "program_id": "prog023",
+    "oiv_id": "OIV023",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 25,
+    "program_id": "prog024",
+    "oiv_id": "OIV024",
+    "strategy_id": "str024",
+    "program_type": 0.0,
+    "name": "Развитие цифровой среды и инноваций"
+  },
+  {
+    "id": 26,
+    "program_id": "prog024",
+    "oiv_id": "OIV024",
+    "strategy_id": "str024",
+    "program_type": 1.0,
+    "name": "Развитие средств массовой информации"
+  },
+  {
+    "id": 27,
+    "program_id": "prog025",
+    "oiv_id": "OIV025",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 28,
+    "program_id": "prog026",
+    "oiv_id": "OIV026",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 29,
+    "program_id": "prog027",
+    "oiv_id": "OIV027",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 30,
+    "program_id": "prog028",
+    "oiv_id": "OIV028",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 31,
+    "program_id": "prog029",
+    "oiv_id": "OIV029",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 32,
+    "program_id": "prog030",
+    "oiv_id": "OIV030",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 33,
+    "program_id": "prog031",
+    "oiv_id": "OIV031",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 34,
+    "program_id": "prog032",
+    "oiv_id": "OIV032",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 35,
+    "program_id": "prog033",
+    "oiv_id": "OIV033",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 36,
+    "program_id": "prog034",
+    "oiv_id": "OIV034",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 37,
+    "program_id": "prog035",
+    "oiv_id": "OIV035",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 38,
+    "program_id": "prog036",
+    "oiv_id": "OIV036",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 39,
+    "program_id": "prog037",
+    "oiv_id": "OIV037",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 40,
+    "program_id": "prog038",
+    "oiv_id": "OIV038",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 41,
+    "program_id": "prog039",
+    "oiv_id": "OIV039",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 42,
+    "program_id": "prog040",
+    "oiv_id": "OIV040",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 43,
+    "program_id": "prog041",
+    "oiv_id": "OIV041",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 44,
+    "program_id": "prog042",
+    "oiv_id": "OIV042",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 45,
+    "program_id": "prog043",
+    "oiv_id": "OIV043",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 46,
+    "program_id": "prog044",
+    "oiv_id": "OIV044",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 47,
+    "program_id": "prog045",
+    "oiv_id": "OIV045",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 48,
+    "program_id": "prog046",
+    "oiv_id": "OIV046",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 49,
+    "program_id": "prog047",
+    "oiv_id": "OIV047",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 50,
+    "program_id": "prog048",
+    "oiv_id": "OIV048",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 51,
+    "program_id": "prog049",
+    "oiv_id": "OIV049",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 52,
+    "program_id": "prog050",
+    "oiv_id": "OIV050",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 53,
+    "program_id": "prog051",
+    "oiv_id": "OIV051",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 54,
+    "program_id": "prog052",
+    "oiv_id": "OIV052",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 55,
+    "program_id": "prog053",
+    "oiv_id": "OIV053",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 56,
+    "program_id": "prog054",
+    "oiv_id": "OIV054",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  },
+  {
+    "id": 57,
+    "program_id": "prog055",
+    "oiv_id": "OIV055",
+    "strategy_id": null,
+    "program_type": null,
+    "name": "В разработке"
+  }
+]

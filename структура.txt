@@ -1,0 +1,25 @@
+/gov-visualization
+  /public
+    /css
+      style.css
+    /js
+      threeScene.js
+      filters.js
+      dashboard.js
+      tableView.js
+      export.js
+    /models
+      (FBX модели)
+    /icons
+      (иконки)
+  /data
+    data.json
+  /routes
+    index.js
+  /views
+    index.ejs
+    3d-view.ejs
+    table-view.ejs
+    dashboard.ejs
+  app.js
+  package.json

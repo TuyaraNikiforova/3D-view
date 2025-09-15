@@ -1,0 +1,166 @@
+<% content_for('content') do %>
+    <div class="container">
+        <div class="table-controls">
+            <button id="export-btn">Export to Excel</button>
+        </div>
+        
+        <table id="data-table">
+            <thead>
+                <tr>
+                    <th>Complex</th>
+                    <th>Authority</th>
+                    <th>Connection</th>
+                    <th>Connection Theme</th>
+                    <th>Strategy</th>
+                    <th>State Program</th>
+                    <th>Projects</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% data.edges.forEach(edge => { 
+                    const sourceOIV = data.oiv.find(o => o.id === edge.source);
+                    const targetOIV = data.oiv.find(o => o.id === edge.target);
+                    const complex = data.complexes.find(c => c.id === sourceOIV.complex);
+                %>
+                    <tr>
+                        <td><%= complex.name %></td>
+                        <td>
+                            <div><strong>Source:</strong> <%= sourceOIV.name %></div>
+                            <div><strong>Target:</strong> <%= targetOIV.name %></div>
+                        </td>
+                        <td><%= edge.label %></td>
+                        <td><%= edge.theme %></td>
+                        <td>
+                            <% sourceOIV.strategies.forEach(strategyId => { 
+                                const strategy = data.strategies.find(s => s.id === strategyId);
+                            %>
+                                <%= strategy.name %><br>
+                            <% }) %>
+                        </td>
+                        <td>
+                            <% sourceOIV.programs.forEach(programId => { 
+                                const program = data.programs.find(p => p.id === programId);
+                            %>
+                                <%= program.name %><br>
+                            <% }) %>
+                        </td>
+                        <td>
+                            <% sourceOIV.projects.forEach(projectId => { 
+                                const project = data.projects.find(p => p.id === projectId);
+                            %>
+                                <%= project.name %><br>
+                            <% }) %>
+                        </td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    </div>
+    
+    <script>
+        // Функция для обновления таблицы
+        function updateTableView(data) {
+            const tableBody = document.querySelector('#data-table tbody');
+            tableBody.innerHTML = '';
+            
+            data.edges.forEach(edge => {
+                const sourceOIV = data.oiv.find(o => o.id === edge.source);
+                const targetOIV = data.oiv.find(o => o.id === edge.target);
+                const complex = data.complexes.find(c => c.id === sourceOIV.complex);
+                
+                const row = document.createElement('tr');
+                
+                // Комплекс
+                const complexCell = document.createElement('td');
+                complexCell.textContent = complex.name;
+                row.appendChild(complexCell);
+                
+                // Органы власти
+                const oivCell = document.createElement('td');
+                oivCell.innerHTML = `<div><strong>Source:</strong> ${sourceOIV.name}</div><div><strong>Target:</strong> ${targetOIV.name}</div>`;
+                row.appendChild(oivCell);
+                
+                // Связь
+                const connectionCell = document.createElement('td');
+                connectionCell.textContent = edge.label;
+                row.appendChild(connectionCell);
+                
+                // Тема связи
+                const themeCell = document.createElement('td');
+                themeCell.textContent = edge.theme;
+                row.appendChild(themeCell);
+                
+                // Стратегии
+                const strategyCell = document.createElement('td');
+                sourceOIV.strategies.forEach(strategyId => {
+                    const strategy = data.strategies.find(s => s.id === strategyId);
+                    strategyCell.innerHTML += `${strategy.name}<br>`;
+                });
+                row.appendChild(strategyCell);
+                
+                // Программы
+                const programCell = document.createElement('td');
+                sourceOIV.programs.forEach(programId => {
+                    const program = data.programs.find(p => p.id === programId);
+                    programCell.innerHTML += `${program.name}<br>`;
+                });
+                row.appendChild(programCell);
+                
+                // Проекты
+                const projectCell = document.createElement('td');
+                sourceOIV.projects.forEach(projectId => {
+                    const project = data.projects.find(p => p.id === projectId);
+                    projectCell.innerHTML += `${project.name}<br>`;
+                });
+                row.appendChild(projectCell);
+                
+                tableBody.appendChild(row);
+            });
+        }
+        
+        // Экспорт в Excel
+        document.getElementById('export-btn').addEventListener('click', function() {
+            const data = window.currentTableData || {};
+            const edges = data.edges || [];
+            const oiv = data.oiv || [];
+            const complexes = data.complexes || [];
+            const strategies = data.strategies || [];
+            const programs = data.programs || [];
+            const projects = data.projects || [];
+            
+            const exportData = edges.map(edge => {
+                const sourceOIV = oiv.find(o => o.id === edge.source);
+                const targetOIV = oiv.find(o => o.id === edge.target);
+                const complex = complexes.find(c => c.id === sourceOIV.complex);
+                
+                return {
+                    'Complex': complex.name,
+                    'Source Authority': sourceOIV.name,
+                    'Target Authority': targetOIV.name,
+                    'Connection': edge.label,
+                    'Connection Theme': edge.theme,
+                    'Strategies': sourceOIV.strategies.map(id => strategies.find(s => s.id === id).name).join(', '),
+                    'Programs': sourceOIV.programs.map(id => programs.find(p => p.id === id).name).join(', '),
+                    'Projects': sourceOIV.projects.map(id => projects.find(p => p.id === id).name).join(', ')
+                };
+            });
+            
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Connections Data");
+            
+            XLSX.writeFile(wb, "government_connections.xlsx");
+        });
+        
+        // Сохраняем текущие данные для экспорта
+        window.currentTableData = <%- JSON.stringify(data) %>;
+        
+        // Регистрируем функцию обновления таблицы для использования из filters.js
+        window.updateTableView = updateTableView;
+    </script>
+    
+    <!-- Подключаем библиотеку для экспорта в Excel -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
+<% end %>
+
+<%- include('layout', { activeTab: 'table-view' }) %>

@@ -1,0 +1,22 @@
+<% content_for('content') do %>
+    <div class="container">
+        <div class="tab-content active" id="3d-view">
+            <div class="main-content">
+                <div id="canvas-container"></div>
+                <div class="controls">
+                    <button id="zoom-in">+</button>
+                    <button id="zoom-out">-</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script type="module">
+        import { init3DScene } from '/js/threeScene.js';
+        document.addEventListener('DOMContentLoaded', () => {
+            init3DScene();
+        });
+    </script>
+<% end %>
+
+<%- include('layout', { activeTab: '3d-view' }) %>

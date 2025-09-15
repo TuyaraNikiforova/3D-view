@@ -1,0 +1,982 @@
+[
+  {
+    "id": 1,
+    "object_id": "Obj00001",
+    "AI_object_id": "Obj00013",
+    "object_name": "Пожарно-спасательные подразделения",
+    "oiv_id": "OIV016",
+    "theme": "Безопасность и ЧС",
+    "theme_weight": 5,
+    "info_type": 1
+  },
+  {
+    "id": 2,
+    "object_id": "Obj00002",
+    "AI_object_id": "Obj00013",
+    "object_name": "Аварийно-спасательные подразделения",
+    "oiv_id": "OIV016",
+    "theme": "Безопасность и ЧС",
+    "theme_weight": 5,
+    "info_type": 1
+  },
+  {
+    "id": 3,
+    "object_id": "Obj00003",
+    "AI_object_id": "Obj00013",
+    "object_name": "Авиационное подразделение",
+    "oiv_id": "OIV016",
+    "theme": "Безопасность и ЧС",
+    "theme_weight": 4,
+    "info_type": 1
+  },
+  {
+    "id": 4,
+    "object_id": "Obj00004",
+    "AI_object_id": "Obj00013",
+    "object_name": "Поисково-спасательные станции",
+    "oiv_id": "OIV016",
+    "theme": "Безопасность и ЧС",
+    "theme_weight": 5,
+    "info_type": 1
+  },
+  {
+    "id": 5,
+    "object_id": "Obj00005",
+    "AI_object_id": "Obj00011",
+    "object_name": "Электросиренное оповещение",
+    "oiv_id": "OIV016",
+    "theme": "Безопасность и ЧС",
+    "theme_weight": 4,
+    "info_type": 1
+  },
+  {
+    "id": 6,
+    "object_id": "Obj00006",
+    "AI_object_id": "Obj00011",
+    "object_name": "Перехват телерадио вещания",
+    "oiv_id": "OIV016",
+    "theme": "Безопасность и ЧС",
+    "theme_weight": 3,
+    "info_type": 1
+  },
+  {
+    "id": 7,
+    "object_id": "Obj00006",
+    "AI_object_id": "Obj00011",
+    "object_name": "Перехват телерадио вещания",
+    "oiv_id": "OIV016",
+    "theme": "СМИ и информационная политика",
+    "theme_weight": 2,
+    "info_type": 1
+  },
+  {
+    "id": 8,
+    "object_id": "Obj00007",
+    "AI_object_id": "Obj00011",
+    "object_name": "Уличная звукофикация",
+    "oiv_id": "OIV016",
+    "theme": "Безопасность и ЧС",
+    "theme_weight": 3,
+    "info_type": 1
+  },
+  {
+    "id": 9,
+    "object_id": "Obj00007",
+    "AI_object_id": "Obj00011",
+    "object_name": "Уличная звукофикация",
+    "oiv_id": "OIV016",
+    "theme": "Инфраструктура",
+    "theme_weight": 2,
+    "info_type": 1
+  },
+  {
+    "id": 10,
+    "object_id": "Obj00008",
+    "AI_object_id": "Obj00014",
+    "object_name": "Обеспеченность населения средствами индивидуальной защиты",
+    "oiv_id": "OIV016",
+    "theme": "Безопасность и ЧС",
+    "theme_weight": 5,
+    "info_type": 1
+  },
+  {
+    "id": 11,
+    "object_id": "Obj00009",
+    "AI_object_id": "Obj00014",
+    "object_name": "Обеспеченность населения местами укрытия",
+    "oiv_id": "OIV016",
+    "theme": "Безопасность и ЧС",
+    "theme_weight": 5,
+    "info_type": 1
+  },
+  {
+    "id": 12,
+    "object_id": "Obj00010",
+    "AI_object_id": "Obj00016",
+    "object_name": "Подготовка руководящего состава органов государственной власти, органов местного самоуправления, организаций и населения в области гражданской обороны и защиты от чрезвычайных ситуаций, обучения мерам пожарной безопасности и неработающего населения в области защиты населения и территорий города Москвы от чрезвычайных ситуаций природного и техногенного характера, обеспечение пожарной безопасности и безопасности людей на водных объектах",
+    "oiv_id": "OIV016",
+    "theme": "Безопасность и ЧС",
+    "theme_weight": 5,
+    "info_type": 1
+  },
+  {
+    "id": 13,
+    "object_id": "Obj00010",
+    "AI_object_id": "Obj00016",
+    "object_name": "Подготовка руководящего состава органов государственной власти, органов местного самоуправления, организаций и населения в области гражданской обороны и защиты от чрезвычайных ситуаций, обучения мерам пожарной безопасности и неработающего населения в области защиты населения и территорий города Москвы от чрезвычайных ситуаций природного и техногенного характера, обеспечение пожарной безопасности и безопасности людей на водных объектах",
+    "oiv_id": "OIV016",
+    "theme": "Образование и наука",
+    "theme_weight": 3,
+    "info_type": 1
+  },
+  {
+    "id": 14,
+    "object_id": "Obj00011",
+    "AI_object_id": null,
+    "object_name": "Системы оповещения в населённых пунктах",
+    "oiv_id": "OIV016",
+    "theme": "Безопасность и ЧС",
+    "theme_weight": 4,
+    "info_type": 2
+  },
+  {
+    "id": 15,
+    "object_id": "Obj00012",
+    "AI_object_id": null,
+    "object_name": "Городские и районные гражданские службы",
+    "oiv_id": "OIV016",
+    "theme": "Государственное управление",
+    "theme_weight": 3,
+    "info_type": 2
+  },
+  {
+    "id": 16,
+    "object_id": "Obj00012",
+    "AI_object_id": null,
+    "object_name": "Городские и районные гражданские службы",
+    "oiv_id": "OIV016",
+    "theme": "Безопасность и ЧС",
+    "theme_weight": 3,
+    "info_type": 2
+  },
+  {
+    "id": 17,
+    "object_id": "Obj00013",
+    "AI_object_id": null,
+    "object_name": "Подразделения гражданской обороны",
+    "oiv_id": "OIV016",
+    "theme": "Безопасность и ЧС",
+    "theme_weight": 5,
+    "info_type": 2
+  },
+  {
+    "id": 18,
+    "object_id": "Obj00014",
+    "AI_object_id": null,
+    "object_name": "Убежища и укрытия",
+    "oiv_id": "OIV016",
+    "theme": "Безопасность и ЧС",
+    "theme_weight": 5,
+    "info_type": 2
+  },
+  {
+    "id": 19,
+    "object_id": "Obj00015",
+    "AI_object_id": null,
+    "object_name": "Склады предметов первой необходимости",
+    "oiv_id": "OIV016",
+    "theme": "Безопасность и ЧС",
+    "theme_weight": 4,
+    "info_type": 2
+  },
+  {
+    "id": 20,
+    "object_id": "Obj00015",
+    "AI_object_id": null,
+    "object_name": "Склады предметов первой необходимости",
+    "oiv_id": "OIV016",
+    "theme": "Социальная защита и поддержка",
+    "theme_weight": 2,
+    "info_type": 2
+  },
+  {
+    "id": 21,
+    "object_id": "Obj00016",
+    "AI_object_id": null,
+    "object_name": "Учебно-тренировочные мероприятия",
+    "oiv_id": "OIV016",
+    "theme": "Безопасность и ЧС",
+    "theme_weight": 4,
+    "info_type": 2
+  },
+  {
+    "id": 22,
+    "object_id": "Obj00017",
+    "AI_object_id": null,
+    "object_name": "Выявленные потенциальные очаги возгорания",
+    "oiv_id": "OIV016",
+    "theme": "Безопасность и ЧС",
+    "theme_weight": 4,
+    "info_type": 2
+  },
+  {
+    "id": 23,
+    "object_id": "Obj00018",
+    "AI_object_id": null,
+    "object_name": "Пожарные расчёты",
+    "oiv_id": "OIV016",
+    "theme": "Безопасность и ЧС",
+    "theme_weight": 5,
+    "info_type": 2
+  },
+  {
+    "id": 24,
+    "object_id": "Obj00019",
+    "AI_object_id": null,
+    "object_name": "Профилактические мероприятия по пожарам",
+    "oiv_id": "OIV016",
+    "theme": "Безопасность и ЧС",
+    "theme_weight": 5,
+    "info_type": 2
+  },
+  {
+    "id": 25,
+    "object_id": "Obj00016",
+    "AI_object_id": null,
+    "object_name": "Учебно-тренировочные мероприятия",
+    "oiv_id": "OIV016",
+    "theme": "Образование и наука",
+    "theme_weight": 3,
+    "info_type": 2
+  },
+  {
+    "id": 26,
+    "object_id": "Obj00020",
+    "AI_object_id": null,
+    "object_name": "Огнестойкая инфраструктура",
+    "oiv_id": "OIV016",
+    "theme": "Безопасность и ЧС",
+    "theme_weight": 4,
+    "info_type": 2
+  },
+  {
+    "id": 27,
+    "object_id": "Obj00021",
+    "AI_object_id": null,
+    "object_name": "Пожарная техника и оборудование",
+    "oiv_id": "OIV016",
+    "theme": "Безопасность и ЧС",
+    "theme_weight": 5,
+    "info_type": 2
+  },
+  {
+    "id": 28,
+    "object_id": "Obj00022",
+    "AI_object_id": null,
+    "object_name": "Потери от пожаров",
+    "oiv_id": "OIV016",
+    "theme": "Безопасность и ЧС",
+    "theme_weight": 4,
+    "info_type": 2
+  },
+  {
+    "id": 29,
+    "object_id": "Obj00023",
+    "AI_object_id": null,
+    "object_name": "Спасательные службы на воде",
+    "oiv_id": "OIV016",
+    "theme": "Безопасность и ЧС",
+    "theme_weight": 5,
+    "info_type": 2
+  },
+  {
+    "id": 30,
+    "object_id": "Obj00024",
+    "AI_object_id": null,
+    "object_name": "Патрулирование берегов",
+    "oiv_id": "OIV016",
+    "theme": "Безопасность и ЧС",
+    "theme_weight": 4,
+    "info_type": 2
+  },
+  {
+    "id": 31,
+    "object_id": "Obj00025",
+    "AI_object_id": null,
+    "object_name": "Прибрежное спасательное оборудование",
+    "oiv_id": "OIV016",
+    "theme": "Безопасность и ЧС",
+    "theme_weight": 4,
+    "info_type": 2
+  },
+  {
+    "id": 32,
+    "object_id": "Obj00020",
+    "AI_object_id": null,
+    "object_name": "Огнестойкая инфраструктура",
+    "oiv_id": "OIV016",
+    "theme": "Инфраструктура",
+    "theme_weight": 3,
+    "info_type": 2
+  },
+  {
+    "id": 33,
+    "object_id": "Obj00026",
+    "AI_object_id": null,
+    "object_name": "Пострадавшие от природных катастроф",
+    "oiv_id": "OIV016",
+    "theme": "Безопасность и ЧС",
+    "theme_weight": 4,
+    "info_type": 2
+  },
+  {
+    "id": 34,
+    "object_id": "Obj00026",
+    "AI_object_id": null,
+    "object_name": "Пострадавшие от природных катастроф",
+    "oiv_id": "OIV016",
+    "theme": "Социальная защита и поддержка",
+    "theme_weight": 3,
+    "info_type": 2
+  },
+  {
+    "id": 35,
+    "object_id": "Obj00027",
+    "AI_object_id": null,
+    "object_name": "Мероприятия по восстановлению инфраструктуры",
+    "oiv_id": "OIV016",
+    "theme": "Безопасность и ЧС",
+    "theme_weight": 3,
+    "info_type": 2
+  },
+  {
+    "id": 36,
+    "object_id": "Obj00028",
+    "AI_object_id": null,
+    "object_name": "Ущерб от природных катастроф",
+    "oiv_id": "OIV016",
+    "theme": "Безопасность и ЧС",
+    "theme_weight": 4,
+    "info_type": 2
+  },
+  {
+    "id": 37,
+    "object_id": "Obj00027",
+    "AI_object_id": null,
+    "object_name": "Мероприятия по восстановлению инфраструктуры",
+    "oiv_id": "OIV016",
+    "theme": "Инфраструктура",
+    "theme_weight": 4,
+    "info_type": 2
+  },
+  {
+    "id": 38,
+    "object_id": "Obj00029",
+    "AI_object_id": null,
+    "object_name": "Образовательные программы по безопасности",
+    "oiv_id": "OIV016",
+    "theme": "Безопасность и ЧС",
+    "theme_weight": 4,
+    "info_type": 2
+  },
+  {
+    "id": 39,
+    "object_id": "Obj00029",
+    "AI_object_id": null,
+    "object_name": "Образовательные программы по безопасности",
+    "oiv_id": "OIV016",
+    "theme": "Образование и наука",
+    "theme_weight": 3,
+    "info_type": 2
+  },
+  {
+    "id": 40,
+    "object_id": "Obj00030",
+    "AI_object_id": null,
+    "object_name": "Осведомлённость населения",
+    "oiv_id": "OIV016",
+    "theme": "Безопасность и ЧС",
+    "theme_weight": 3,
+    "info_type": 2
+  },
+  {
+    "id": 41,
+    "object_id": "Obj00030",
+    "AI_object_id": null,
+    "object_name": "Осведомлённость населения",
+    "oiv_id": "OIV016",
+    "theme": "Взаимодействие с гражданами",
+    "theme_weight": 3,
+    "info_type": 2
+  },
+  {
+    "id": 42,
+    "object_id": "Obj00031",
+    "AI_object_id": null,
+    "object_name": "Распространение инструкций по безопасности",
+    "oiv_id": "OIV016",
+    "theme": "Безопасность и ЧС",
+    "theme_weight": 4,
+    "info_type": 2
+  },
+  {
+    "id": 43,
+    "object_id": "Obj00031",
+    "AI_object_id": null,
+    "object_name": "Распространение инструкций по безопасности",
+    "oiv_id": "OIV016",
+    "theme": "Взаимодействие с гражданами",
+    "theme_weight": 3,
+    "info_type": 2
+  },
+  {
+    "id": 44,
+    "object_id": "Obj00032",
+    "AI_object_id": null,
+    "object_name": "Коммуникация органов власти",
+    "oiv_id": "OIV016",
+    "theme": "Государственное управление",
+    "theme_weight": 3,
+    "info_type": 2
+  },
+  {
+    "id": 45,
+    "object_id": "Obj00032",
+    "AI_object_id": null,
+    "object_name": "Коммуникация органов власти",
+    "oiv_id": "OIV016",
+    "theme": "Взаимодействие с гражданами",
+    "theme_weight": 4,
+    "info_type": 2
+  },
+  {
+    "id": 46,
+    "object_id": "Obj00033",
+    "AI_object_id": null,
+    "object_name": "Реагирование местных властей",
+    "oiv_id": "OIV016",
+    "theme": "Государственное управление",
+    "theme_weight": 3,
+    "info_type": 2
+  },
+  {
+    "id": 47,
+    "object_id": "Obj00033",
+    "AI_object_id": null,
+    "object_name": "Реагирование местных властей",
+    "oiv_id": "OIV016",
+    "theme": "Безопасность и ЧС",
+    "theme_weight": 3,
+    "info_type": 2
+  },
+  {
+    "id": 48,
+    "object_id": "Obj00034",
+    "AI_object_id": null,
+    "object_name": "Доверие населения к властям",
+    "oiv_id": "OIV016",
+    "theme": "Взаимодействие с гражданами",
+    "theme_weight": 4,
+    "info_type": 2
+  },
+  {
+    "id": 49,
+    "object_id": "Obj00035",
+    "AI_object_id": "Obj00014",
+    "object_name": "Предоставление населению средств коллективной защиты",
+    "oiv_id": "OIV016",
+    "theme": "Безопасность и ЧС",
+    "theme_weight": 5,
+    "info_type": 1
+  },
+  {
+    "id": 50,
+    "object_id": "Obj00034",
+    "AI_object_id": null,
+    "object_name": "Доверие населения к властям",
+    "oiv_id": "OIV016",
+    "theme": "Государственное управление",
+    "theme_weight": 3,
+    "info_type": 2
+  },
+  {
+    "id": 51,
+    "object_id": "Obj00036",
+    "AI_object_id": "Obj00016",
+    "object_name": "Подготовка руководящего состава в ГБУ ДПО \"УМЦ ГО и ЧС\"",
+    "oiv_id": "OIV016",
+    "theme": "Безопасность и ЧС",
+    "theme_weight": 5,
+    "info_type": 1
+  },
+  {
+    "id": 52,
+    "object_id": "Obj00036",
+    "AI_object_id": "Obj00016",
+    "object_name": "Подготовка руководящего состава в ГБУ ДПО \"УМЦ ГО и ЧС\"",
+    "oiv_id": "OIV016",
+    "theme": "Образование и наука",
+    "theme_weight": 3,
+    "info_type": 1
+  },
+  {
+    "id": 53,
+    "object_id": "Obj00037",
+    "AI_object_id": "Obj00016",
+    "object_name": "Консультация неработающего населения в УКП ГО и ЧС",
+    "oiv_id": "OIV016",
+    "theme": "Безопасность и ЧС",
+    "theme_weight": 4,
+    "info_type": 1
+  },
+  {
+    "id": 54,
+    "object_id": "Obj00037",
+    "AI_object_id": "Obj00016",
+    "object_name": "Консультация неработающего населения в УКП ГО и ЧС",
+    "oiv_id": "OIV016",
+    "theme": "Социальная защита и поддержка",
+    "theme_weight": 3,
+    "info_type": 1
+  },
+  {
+    "id": 55,
+    "object_id": "Obj00038",
+    "AI_object_id": "Obj00054",
+    "object_name": "Городские телевизионные и радиоканалы",
+    "oiv_id": "OIV024",
+    "theme": "СМИ и информационная политика",
+    "theme_weight": 5,
+    "info_type": 1
+  },
+  {
+    "id": 56,
+    "object_id": "Obj00039",
+    "AI_object_id": "Obj00054",
+    "object_name": "Телеканал \"ТВ Центр\"",
+    "oiv_id": "OIV024",
+    "theme": "СМИ и информационная политика",
+    "theme_weight": 5,
+    "info_type": 1
+  },
+  {
+    "id": 57,
+    "object_id": "Obj00040",
+    "AI_object_id": "Obj00054",
+    "object_name": "Телеканал \"Москва 24\"",
+    "oiv_id": "OIV024",
+    "theme": "СМИ и информационная политика",
+    "theme_weight": 5,
+    "info_type": 1
+  },
+  {
+    "id": 58,
+    "object_id": "Obj00041",
+    "AI_object_id": "Obj00054",
+    "object_name": "Телеканал \"Москва Доверие\"",
+    "oiv_id": "OIV024",
+    "theme": "СМИ и информационная политика",
+    "theme_weight": 5,
+    "info_type": 1
+  },
+  {
+    "id": 59,
+    "object_id": "Obj00042",
+    "AI_object_id": null,
+    "object_name": "Радиостанция \"Москва FM\"",
+    "oiv_id": "OIV024",
+    "theme": "СМИ и информационная политика",
+    "theme_weight": 5,
+    "info_type": 1
+  },
+  {
+    "id": 60,
+    "object_id": "Obj00043",
+    "AI_object_id": null,
+    "object_name": "Радиостанция \"Радио Москвы\"",
+    "oiv_id": "OIV024",
+    "theme": "СМИ и информационная политика",
+    "theme_weight": 5,
+    "info_type": 1
+  },
+  {
+    "id": 61,
+    "object_id": "Obj00044",
+    "AI_object_id": "Obj00056",
+    "object_name": "Сетевые издания, информационные агентства и аккаунты редакций СМИ в социальных сетях и мессенджерах",
+    "oiv_id": "OIV024",
+    "theme": "СМИ и информационная политика",
+    "theme_weight": 5,
+    "info_type": 1
+  },
+  {
+    "id": 62,
+    "object_id": "Obj00045",
+    "AI_object_id": "Obj00056",
+    "object_name": "Сетевые издания и информационные агентства",
+    "oiv_id": "OIV024",
+    "theme": "СМИ и информационная политика",
+    "theme_weight": 5,
+    "info_type": 1
+  },
+  {
+    "id": 63,
+    "object_id": "Obj00046",
+    "AI_object_id": "Obj00056",
+    "object_name": "Агентство Городских Новостей \"Москва\"",
+    "oiv_id": "OIV024",
+    "theme": "СМИ и информационная политика",
+    "theme_weight": 5,
+    "info_type": 1
+  },
+  {
+    "id": 64,
+    "object_id": "Obj00047",
+    "AI_object_id": "Obj00062",
+    "object_name": "Аккаунты редакций СМИ в социальных сетях и мессенджерах",
+    "oiv_id": "OIV024",
+    "theme": "СМИ и информационная политика",
+    "theme_weight": 5,
+    "info_type": 1
+  },
+  {
+    "id": 65,
+    "object_id": "Obj00048",
+    "AI_object_id": "Obj00056",
+    "object_name": "Периодические печатные издания ",
+    "oiv_id": "OIV024",
+    "theme": "СМИ и информационная политика",
+    "theme_weight": 5,
+    "info_type": 1
+  },
+  {
+    "id": 66,
+    "object_id": "Obj00049",
+    "AI_object_id": null,
+    "object_name": "Нестационарные торговые объекты со специализацией «Печать»",
+    "oiv_id": "OIV024",
+    "theme": "СМИ и информационная политика",
+    "theme_weight": 5,
+    "info_type": 1
+  },
+  {
+    "id": 67,
+    "object_id": "Obj00049",
+    "AI_object_id": null,
+    "object_name": "Нестационарные торговые объекты со специализацией «Печать»",
+    "oiv_id": "OIV024",
+    "theme": "Регулирование рынка",
+    "theme_weight": 4,
+    "info_type": 1
+  },
+  {
+    "id": 68,
+    "object_id": "Obj00050",
+    "AI_object_id": "Obj00056",
+    "object_name": "Издательская программа Правительства Москвы",
+    "oiv_id": "OIV024",
+    "theme": "СМИ и информационная политика",
+    "theme_weight": 5,
+    "info_type": 1
+  },
+  {
+    "id": 69,
+    "object_id": "Obj00050",
+    "AI_object_id": "Obj00056",
+    "object_name": "Издательская программа Правительства Москвы",
+    "oiv_id": "OIV024",
+    "theme": "Культура и искусство",
+    "theme_weight": 4,
+    "info_type": 1
+  },
+  {
+    "id": 70,
+    "object_id": "Obj00051",
+    "AI_object_id": "Obj00061",
+    "object_name": "Цифровые рекламные конструкции сети Правительства Москвы",
+    "oiv_id": "OIV024",
+    "theme": "СМИ и информационная политика",
+    "theme_weight": 5,
+    "info_type": 1
+  },
+  {
+    "id": 71,
+    "object_id": "Obj00052",
+    "AI_object_id": "Obj00061",
+    "object_name": "Цифровые щиты 6 х 3 м сети Правительства Москвы",
+    "oiv_id": "OIV024",
+    "theme": "СМИ и информационная политика",
+    "theme_weight": 5,
+    "info_type": 1
+  },
+  {
+    "id": 72,
+    "object_id": "Obj00053",
+    "AI_object_id": "Obj00061",
+    "object_name": "Цифровые афишные стенды сети Правительства Москвы",
+    "oiv_id": "OIV024",
+    "theme": "СМИ и информационная политика",
+    "theme_weight": 5,
+    "info_type": 1
+  },
+  {
+    "id": 73,
+    "object_id": "Obj00054",
+    "AI_object_id": null,
+    "object_name": "Новостные сюжеты и репортажи",
+    "oiv_id": "OIV024",
+    "theme": "СМИ и информационная политика",
+    "theme_weight": 5,
+    "info_type": 2
+  },
+  {
+    "id": 74,
+    "object_id": "Obj00055",
+    "AI_object_id": null,
+    "object_name": "Информационные материалы",
+    "oiv_id": "OIV024",
+    "theme": "СМИ и информационная политика",
+    "theme_weight": 5,
+    "info_type": 2
+  },
+  {
+    "id": 75,
+    "object_id": "Obj00056",
+    "AI_object_id": null,
+    "object_name": "Информационные продукты",
+    "oiv_id": "OIV024",
+    "theme": "СМИ и информационная политика",
+    "theme_weight": 5,
+    "info_type": 2
+  },
+  {
+    "id": 76,
+    "object_id": "Obj00057",
+    "AI_object_id": null,
+    "object_name": "Рекламные материалы",
+    "oiv_id": "OIV024",
+    "theme": "СМИ и информационная политика",
+    "theme_weight": 5,
+    "info_type": 2
+  },
+  {
+    "id": 77,
+    "object_id": "Obj00058",
+    "AI_object_id": null,
+    "object_name": "Рекламные конструкции",
+    "oiv_id": "OIV024",
+    "theme": "СМИ и информационная политика",
+    "theme_weight": 5,
+    "info_type": 2
+  },
+  {
+    "id": 78,
+    "object_id": "Obj00059",
+    "AI_object_id": null,
+    "object_name": "Планы размещения рекламы",
+    "oiv_id": "OIV024",
+    "theme": "СМИ и информационная политика",
+    "theme_weight": 5,
+    "info_type": 2
+  },
+  {
+    "id": 79,
+    "object_id": "Obj00060",
+    "AI_object_id": null,
+    "object_name": "Социальная реклама",
+    "oiv_id": "OIV024",
+    "theme": "СМИ и информационная политика",
+    "theme_weight": 4,
+    "info_type": 2
+  },
+  {
+    "id": 80,
+    "object_id": "Obj00060",
+    "AI_object_id": null,
+    "object_name": "Социальная реклама",
+    "oiv_id": "OIV024",
+    "theme": "Социальная защита и поддержка",
+    "theme_weight": 4,
+    "info_type": 2
+  },
+  {
+    "id": 81,
+    "object_id": "Obj00061",
+    "AI_object_id": null,
+    "object_name": "Рекламные и социальные кампании",
+    "oiv_id": "OIV024",
+    "theme": "СМИ и информационная политика",
+    "theme_weight": 5,
+    "info_type": 2
+  },
+  {
+    "id": 82,
+    "object_id": "Obj00062",
+    "AI_object_id": null,
+    "object_name": "Цифровые платформы, веб-сайты",
+    "oiv_id": "OIV024",
+    "theme": "Цифровизация",
+    "theme_weight": 4,
+    "info_type": 2
+  },
+  {
+    "id": 83,
+    "object_id": "Obj00063",
+    "AI_object_id": null,
+    "object_name": "Онлайн-ресурсы",
+    "oiv_id": "OIV024",
+    "theme": "Цифровизация",
+    "theme_weight": 4,
+    "info_type": 2
+  },
+  {
+    "id": 84,
+    "object_id": "Obj00064",
+    "AI_object_id": null,
+    "object_name": "Несанкционированная реклама",
+    "oiv_id": "OIV024",
+    "theme": "Контроль и надзор",
+    "theme_weight": 4,
+    "info_type": 2
+  },
+  {
+    "id": 85,
+    "object_id": "Obj00065",
+    "AI_object_id": null,
+    "object_name": "Фасады зданий",
+    "oiv_id": "OIV024",
+    "theme": "Архитектура и историческое наследие",
+    "theme_weight": 3,
+    "info_type": 2
+  },
+  {
+    "id": 86,
+    "object_id": "Obj00065",
+    "AI_object_id": null,
+    "object_name": "Фасады зданий",
+    "oiv_id": "OIV024",
+    "theme": "Благоустройство",
+    "theme_weight": 3,
+    "info_type": 2
+  },
+  {
+    "id": 87,
+    "object_id": "Obj00066",
+    "AI_object_id": null,
+    "object_name": "Бюджетные расходы",
+    "oiv_id": "OIV024",
+    "theme": "Финансовое управление",
+    "theme_weight": 5,
+    "info_type": 2
+  },
+  {
+    "id": 88,
+    "object_id": "Obj00067",
+    "AI_object_id": null,
+    "object_name": "Контракты и заказы",
+    "oiv_id": "OIV024",
+    "theme": "Государственные закупки и контракты",
+    "theme_weight": 5,
+    "info_type": 2
+  },
+  {
+    "id": 89,
+    "object_id": "Obj00068",
+    "AI_object_id": null,
+    "object_name": "Процесс согласования рекламных акций",
+    "oiv_id": "OIV024",
+    "theme": "Правовое регулирование",
+    "theme_weight": 3,
+    "info_type": 2
+  },
+  {
+    "id": 90,
+    "object_id": "Obj00069",
+    "AI_object_id": null,
+    "object_name": "Рабочие процессы",
+    "oiv_id": "OIV024",
+    "theme": "Государственное управление",
+    "theme_weight": 3,
+    "info_type": 2
+  },
+  {
+    "id": 91,
+    "object_id": "Obj00069",
+    "AI_object_id": null,
+    "object_name": "Рабочие процессы",
+    "oiv_id": "OIV024",
+    "theme": "Цифровизация",
+    "theme_weight": 4,
+    "info_type": 2
+  },
+  {
+    "id": 92,
+    "object_id": "Obj00070",
+    "AI_object_id": null,
+    "object_name": "Социологические исследования",
+    "oiv_id": "OIV024",
+    "theme": "Взаимодействие с гражданами",
+    "theme_weight": 4,
+    "info_type": 2
+  },
+  {
+    "id": 93,
+    "object_id": "Obj00070",
+    "AI_object_id": null,
+    "object_name": "Социологические исследования",
+    "oiv_id": "OIV024",
+    "theme": "СМИ и информационная политика",
+    "theme_weight": 5,
+    "info_type": 2
+  },
+  {
+    "id": 94,
+    "object_id": "Obj00071",
+    "AI_object_id": null,
+    "object_name": "Бренд города",
+    "oiv_id": "OIV024",
+    "theme": "Государственное управление",
+    "theme_weight": 4,
+    "info_type": 2
+  },
+  {
+    "id": 95,
+    "object_id": "Obj00071",
+    "AI_object_id": null,
+    "object_name": "Бренд города",
+    "oiv_id": "OIV024",
+    "theme": "Туризм",
+    "theme_weight": 4,
+    "info_type": 2
+  },
+  {
+    "id": 96,
+    "object_id": "Obj00072",
+    "AI_object_id": null,
+    "object_name": "Обратная связь от аудитории",
+    "oiv_id": "OIV024",
+    "theme": "Взаимодействие с гражданами",
+    "theme_weight": 5,
+    "info_type": 2
+  },
+  {
+    "id": 97,
+    "object_id": "Obj00073",
+    "AI_object_id": null,
+    "object_name": "Обращения граждан",
+    "oiv_id": "OIV024",
+    "theme": "Взаимодействие с гражданами",
+    "theme_weight": 5,
+    "info_type": 2
+  },
+  {
+    "id": 98,
+    "object_id": "Obj00074",
+    "AI_object_id": "Obj00056",
+    "object_name": "Газета \"Москва Вечерняя\"",
+    "oiv_id": "OIV024",
+    "theme": "СМИ и информационная политика",
+    "theme_weight": 5,
+    "info_type": 1
+  }
+]
