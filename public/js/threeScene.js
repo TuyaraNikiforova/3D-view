@@ -18,7 +18,8 @@ const fbxLoader = new FBXLoader();
 const oivModels = {
     "OIV001": "/models/DF.fbx",
     "OIV002": "/models/GKU.fbx",
-	"OIV030": "/models/DZM.fbx"
+	"OIV030": "/models/DZM.fbx",
+	"OIV028": "/models/DONM.fbx"
 };
 
 const oivColors = {
