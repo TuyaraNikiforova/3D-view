@@ -7,6 +7,12 @@ let availableOIVs = [];
 
 let initialFilters = null;
 
+let dataFilters = {
+    showOIVData: true,
+    showAIData: true,
+    showOnlyDifferences: true // По умолчанию показывать только расхождения
+};
+
 document.addEventListener('DOMContentLoaded', function() {
     console.log("Dashboard loaded");
     
@@ -96,7 +102,69 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Создаем модальное окно для фильтров
     createFiltersModal();
+    
+    // Добавляем обработчики для фильтров данных (ОИВ/ИИ)
+    setupDataFilters();
 });
+
+function setupDataFilters() {
+    const dataFiltersContainer = document.getElementById('data-filters');
+    if (!dataFiltersContainer) return;
+    
+    // Создаем элементы фильтров, если их нет
+    if (!document.getElementById('oiv-data-filter')) {
+        dataFiltersContainer.innerHTML = `
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <label style="display: flex; align-items: center; gap: 5px; color: #ccc;">
+                    <input type="checkbox" id="oiv-data-filter" checked> Данные ОИВ
+                </label>
+                <label style="display: flex; align-items: center; gap: 5px; color: #ccc;">
+                    <input type="checkbox" id="ai-data-filter" checked> Данные ИИ
+                </label>
+                <label style="display: flex; align-items: center; gap: 5px; color: #ccc;">
+                    <input type="checkbox" id="only-differences-filter" checked> Только расхождения
+                </label>
+                <button id="apply-data-filters" style="padding: 5px 10px; background-color: #4a6da7; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    Применить
+                </button>
+            </div>
+        `;
+        
+        // Устанавливаем обработчики событий
+        document.getElementById('apply-data-filters').addEventListener('click', applyDataFilters);
+        
+        // Загружаем сохраненные настройки фильтров данных
+        const savedDataFilters = localStorage.getItem('dataFilters');
+        if (savedDataFilters) {
+            dataFilters = JSON.parse(savedDataFilters);
+            document.getElementById('oiv-data-filter').checked = dataFilters.showOIVData;
+            document.getElementById('ai-data-filter').checked = dataFilters.showAIData;
+            document.getElementById('only-differences-filter').checked = dataFilters.showOnlyDifferences;
+        } else {
+            // По умолчанию показываем только расхождения (одну галочку)
+            document.getElementById('only-differences-filter').checked = true;
+            dataFilters.showOnlyDifferences = true;
+        }
+    }
+}
+
+function applyDataFilters() {
+    dataFilters = {
+        showOIVData: document.getElementById('oiv-data-filter').checked,
+        showAIData: document.getElementById('ai-data-filter').checked,
+        showOnlyDifferences: document.getElementById('only-differences-filter').checked
+    };
+    
+    // Сохраняем настройки фильтров
+    localStorage.setItem('dataFilters', JSON.stringify(dataFilters));
+    
+    // Перезагружаем таблицы с примененными фильтрами
+    if (currentData) {
+        createDashboardLayout(currentData);
+    }
+    
+    showSuccess('Фильтры данных применены');
+}
 
 function clearAppliedFilters() {
     if (initialFilters) {
@@ -105,7 +173,7 @@ function clearAppliedFilters() {
         loadFilteredData(initialFilters);
         showSuccess('Примененные фильтры очищены, восстановлены первоначальные настройки');
     } else {
-        // Если нет первоначальных фильтров, очищаем все
+        // Если нет первоначальных фильтры, очищаем все
         clearAllFilters();
     }
 }
@@ -210,7 +278,7 @@ function createFiltersModal() {
     document.getElementById('modal-cancel').addEventListener('click', hideFiltersModal);
     document.getElementById('modal-apply').addEventListener('click', applyFiltersFromModal);
     
-    // Обработчики для вкладок
+    // Обработчики для вкладки
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             // Делаем все вкладки неактивными
@@ -833,15 +901,26 @@ function createDashboardLayout(data) {
     createIndicatorsTable(data, indicatorsContent); 
 }
 
-
 function createFilters(data) {
     // Получаем уникальные темы
     const themes = [...new Set(data.edges.map(edge => edge.theme))];
-    const themesFilterContent = document.querySelector('#thems-filter .filter-dropdown-content');
     
-    if (themesFilterContent) {
-        themesFilterContent.innerHTML = '';
+    // Получаем все уникальные OIV из edges (источники и цели)
+    const allOIVs = new Set();
+    data.edges.forEach(edge => {
+        allOIVs.add(edge.source);
+        allOIVs.add(edge.target);
+    });
+    
+    // Создаем фильтры тем
+    const themesFilter = document.getElementById('themes-filter');
+    if (themesFilter) {
+        themesFilter.innerHTML = `
+            <h3>Фильтр по темам</h3>
+            <div class="filter-checkboxes"></div>
+        `;
         
+        const checkboxesContainer = themesFilter.querySelector('.filter-checkboxes');
         themes.forEach(theme => {
             const div = document.createElement('div');
             div.className = 'filter-checkbox';
@@ -851,28 +930,31 @@ function createFilters(data) {
             input.type = 'checkbox';
             input.value = theme;
             input.className = 'theme-checkbox';
+            input.checked = true; // По умолчанию все включено
             
             label.appendChild(input);
             label.appendChild(document.createTextNode(theme));
             div.appendChild(label);
-            themesFilterContent.appendChild(div);
+            checkboxesContainer.appendChild(div);
+        });
+        
+        // Добавляем обработчики событий для чекбоксов
+        checkboxesContainer.querySelectorAll('.theme-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', applyFiltersFromUI);
         });
     }
     
-    // Получаем уникальные OIV (объединенные источники и цели)
-    const allOIVs = new Set();
-    data.edges.forEach(edge => {
-        allOIVs.add(edge.source);
-        allOIVs.add(edge.target);
-    });
-    
-    const oivFilterContent = document.querySelector('#oiv-filter .filter-dropdown-content');
-    
-    if (oivFilterContent) {
-        oivFilterContent.innerHTML = '';
+    // Создаем фильтры OIV
+    const oivFilter = document.getElementById('oiv-filter');
+    if (oivFilter) {
+        oivFilter.innerHTML = `
+            <h3>Фильтр по органам власти</h3>
+            <div class="filter-checkboxes"></div>
+        `;
         
+        const checkboxesContainer = oivFilter.querySelector('.filter-checkboxes');
         allOIVs.forEach(oivId => {
-            const oiv = data.oiv.find(oiv => oiv.id === oivId);
+            const oiv = data.oiv.find(o => o.id === oivId);
             if (oiv) {
                 const div = document.createElement('div');
                 div.className = 'filter-checkbox';
@@ -882,26 +964,30 @@ function createFilters(data) {
                 input.type = 'checkbox';
                 input.value = oivId;
                 input.className = 'oiv-checkbox';
+                input.checked = true; // По умолчанию все включено
                 
                 label.appendChild(input);
                 label.appendChild(document.createTextNode(oiv.name));
                 div.appendChild(label);
-                oivFilterContent.appendChild(div);
+                checkboxesContainer.appendChild(div);
             }
         });
+        
+        // Добавляем обработчики событий для чекбоксов
+        checkboxesContainer.querySelectorAll('.oiv-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', applyFiltersFromUI);
+        });
     }
-    
-    // Добавляем обработчики событий для фильтров
-    document.querySelectorAll('.theme-checkbox, .oiv-checkbox').forEach(checkbox => {
-        checkbox.addEventListener('change', applyFiltersFromUI);
-    });
 }
 
 function applyFiltersFromUI() {
+    // Собираем выбранные темы
     const selectedThemes = [...document.querySelectorAll('.theme-checkbox:checked')].map(cb => cb.value);
+    
+    // Собираем выбранные OIV
     const selectedOIVs = [...document.querySelectorAll('.oiv-checkbox:checked')].map(cb => cb.value);
     
-    // Сохраняем фильтры в localStorage
+    // Сохраняем фильтры
     const filters = {
         themes: selectedThemes,
         oivIds: selectedOIVs
@@ -913,21 +999,14 @@ function applyFiltersFromUI() {
 }
 
 function clearAllFilters() {
-    // Очищаем все чекбоксы в модальном окне
-    document.querySelectorAll('.modal-theme-checkbox, .modal-oiv-checkbox').forEach(checkbox => {
-        checkbox.checked = false;
-    });
-    
-    // Очищаем все чекбоксы в выпадающих списках (если они есть)
-    document.querySelectorAll('.theme-checkbox, .oiv-checkbox').forEach(checkbox => {
-        checkbox.checked = false;
-    });
-    
-    // Очищаем localStorage
+    // Очищаем сохраненные фильтры
     localStorage.removeItem('dashboardFilters');
-    
-    // Сбрасываем initialFilters
     initialFilters = null;
+    
+    // Сбрасываем чекбоксы в UI
+    document.querySelectorAll('.theme-checkbox, .oiv-checkbox').forEach(checkbox => {
+        checkbox.checked = true;
+    });
     
     // Загружаем все данные без фильтров
     loadAllDataWithoutFilters();
@@ -936,17 +1015,12 @@ function clearAllFilters() {
 }
 
 function loadAllDataWithoutFilters() {
-    // Загружаем все данные без применения фильтров
     fetch('/data/data.json')
         .then(res => res.json())
         .then(data => {
             currentData = data;
             createDashboardLayout(data);
             createFilters(data);
-            
-            // Сбрасываем initialFilters при загрузке всех данных
-            initialFilters = null;
-            localStorage.removeItem('dashboardFilters');
         })
         .catch(error => {
             console.error('Error loading data:', error);
@@ -1157,12 +1231,15 @@ function createObjectsTable(data, container) {
         return;
     }
     
+    // Очищаем контейнер
+    container.innerHTML = '';
+    
     // Получаем сохраненные фильтры
     const savedFilters = JSON.parse(localStorage.getItem('dashboardFilters') || '{}');
     const selectedThemes = savedFilters.themes || [];
     const selectedOIVs = savedFilters.oivIds || [];
     
-    // Применяем фильтры так же, как в разделе "темы"
+    // Применяем фильтры
     let filteredObjects = objectsData;
     
     // Фильтрация по темам
@@ -1175,10 +1252,15 @@ function createObjectsTable(data, container) {
         filteredObjects = filteredObjects.filter(obj => selectedOIVs.includes(obj.oiv_id));
     }
     
-    // Если после фильтрации нет объектов, показываем сообщение
-    if (filteredObjects.length === 0) {
-        container.innerHTML = '<p>Нет данных для отображения</p>';
-        return;
+    // Получаем состояние фильтров из localStorage
+    const savedDataFilters = localStorage.getItem('dataFilters');
+	let globalShowOIVData = false; // Было: globalShowOIVData let localShowOIVData = false;
+	let globalShowAIData = false;  // Было: globalShowAIData let localShowAIData = false;
+    
+    if (savedDataFilters) {
+        const dataFilters = JSON.parse(savedDataFilters);
+        globalShowOIVData = dataFilters.showOIVData !== false;
+        globalShowAIData = dataFilters.showAIData !== false;
     }
     
     // Получаем уникальные темы из отфильтрованных объектов
@@ -1189,11 +1271,15 @@ function createObjectsTable(data, container) {
         const themeObjects = filteredObjects.filter(obj => obj.theme === theme);
         if (themeObjects.length === 0) return;
         
-        // Создаем контейнер для таблицы объекта с возможностью раскрытия/скрытия
+        // Локальные настройки фильтров
+        let localShowOIVData = globalShowOIVData;
+        let localShowAIData = globalShowAIData;
+        
+        // Создаем контейнер для таблицы
         const themeContainer = document.createElement('div');
         themeContainer.className = 'theme-table-container';
         
-        // Заголовок темы с кнопкой раскрытия
+        // Заголовок темы
         const themeHeader = document.createElement('div');
         themeHeader.className = 'theme-header';
         themeHeader.style.cursor = 'pointer';
@@ -1222,7 +1308,7 @@ function createObjectsTable(data, container) {
         themeHeader.appendChild(toggleIcon);
         themeContainer.appendChild(themeHeader);
         
-        // Контейнер для содержимого темы (изначально скрыт)
+        // Контейнер для содержимого темы
         const themeContent = document.createElement('div');
         themeContent.className = 'theme-content';
         themeContent.style.display = 'none';
@@ -1274,88 +1360,210 @@ function createObjectsTable(data, container) {
         headerRow.appendChild(aiHeader);
         
         thead.appendChild(headerRow);
+        
+        // Добавляем фильтры под заголовками
+        const filterRow = document.createElement('tr');
+        filterRow.style.backgroundColor = '#3a3a3a';
+        
+        // Пустая ячейка для названия
+        const nameFilterCell = document.createElement('td');
+        nameFilterCell.style.padding = '5px';
+        nameFilterCell.style.border = '1px solid #555';
+        filterRow.appendChild(nameFilterCell);
+        
+        // Пустая ячейка для органа власти
+        const oivNameFilterCell = document.createElement('td');
+        oivNameFilterCell.style.padding = '5px';
+        oivNameFilterCell.style.border = '1px solid #555';
+        filterRow.appendChild(oivNameFilterCell);
+        
+        // Фильтр для данных ОИВ
+        const oivFilterCell = document.createElement('td');
+        oivFilterCell.style.padding = '5px';
+        oivFilterCell.style.border = '1px solid #555';
+        oivFilterCell.style.textAlign = 'center';
+        
+        const oivFilterLabel = document.createElement('label');
+        oivFilterLabel.style.display = 'flex';
+        oivFilterLabel.style.alignItems = 'center';
+        oivFilterLabel.style.justifyContent = 'center';
+        oivFilterLabel.style.gap = '5px';
+        oivFilterLabel.style.color = '#ccc';
+        oivFilterLabel.style.fontSize = '12px';
+        
+        const oivFilterCheckbox = document.createElement('input');
+        oivFilterCheckbox.type = 'checkbox';
+        oivFilterCheckbox.id = `objects-oiv-filter-${theme.replace(/\s+/g, '-')}`;
+        oivFilterCheckbox.checked = false;
+        
+        oivFilterLabel.appendChild(oivFilterCheckbox);
+        oivFilterCell.appendChild(oivFilterLabel);
+        filterRow.appendChild(oivFilterCell);
+        
+        // Фильтр для данных ИИ
+        const aiFilterCell = document.createElement('td');
+        aiFilterCell.style.padding = '5px';
+        aiFilterCell.style.border = '1px solid #555';
+        aiFilterCell.style.textAlign = 'center';
+        
+        const aiFilterLabel = document.createElement('label');
+        aiFilterLabel.style.display = 'flex';
+        aiFilterLabel.style.alignItems = 'center';
+        aiFilterLabel.style.justifyContent = 'center';
+        aiFilterLabel.style.gap = '5px';
+        aiFilterLabel.style.color = '#ccc';
+        aiFilterLabel.style.fontSize = '12px';
+        
+        const aiFilterCheckbox = document.createElement('input');
+        aiFilterCheckbox.type = 'checkbox';
+        aiFilterCheckbox.id = `objects-ai-filter-${theme.replace(/\s+/g, '-')}`;
+        aiFilterCheckbox.checked = false;
+        
+        aiFilterLabel.appendChild(aiFilterCheckbox);
+        aiFilterCell.appendChild(aiFilterLabel);
+        filterRow.appendChild(aiFilterCell);
+        
+        // Добавляем строку фильтров в thead
+        thead.appendChild(filterRow);
         table.appendChild(thead);
         
         // Создаем тело таблицы
         const tbody = document.createElement('tbody');
         
-        // Получаем уникальные объекты по object_id и object_name
-        const uniqueObjects = Array.from(new Set(themeObjects.map(obj => obj.object_id)))
-            .map(id => {
-                const obj = themeObjects.find(o => o.object_id === id);
-                return {
-                    id: obj.object_id,
-                    name: obj.object_name,
-                    ai_id: obj.AI_object_id,
-                    info_type: obj.info_type,
-                    oiv_id: obj.oiv_id
-                };
-            });
-        
-        uniqueObjects.forEach(obj => {
-            const row = document.createElement('tr');
-            row.style.backgroundColor = '#333';
-            row.style.borderBottom = '1px solid #555';
+        // Функция для обновления таблицы с текущими фильтрами
+        const updateTable = () => {
+            // Очищаем тело таблицы
+            tbody.innerHTML = '';
             
-            // Ячейка с названием объекта
-            const nameCell = document.createElement('td');
-            nameCell.textContent = obj.name;
-            nameCell.style.padding = '8px';
-            nameCell.style.border = '1px solid #555';
-            nameCell.style.color = '#cccccc';
-            row.appendChild(nameCell);
+            // Получаем текущие значения фильтров
+            localShowOIVData = oivFilterCheckbox.checked;
+            localShowAIData = aiFilterCheckbox.checked;
             
-            // Ячейка с органом власти
-            const oivNameCell = document.createElement('td');
-            const oiv = data.oiv.find(o => o.id === obj.oiv_id);
-            oivNameCell.textContent = oiv ? oiv.name : 'Неизвестный орган';
-            oivNameCell.style.padding = '8px';
-            oivNameCell.style.border = '1px solid #555';
-            oivNameCell.style.color = '#cccccc';
-            row.appendChild(oivNameCell);
+            // Получаем уникальные объекты
+            const uniqueObjects = Array.from(new Set(themeObjects.map(obj => obj.object_id)))
+                .map(id => {
+                    const obj = themeObjects.find(o => o.object_id === id);
+                    return {
+                        id: obj.object_id,
+                        name: obj.object_name,
+                        ai_id: obj.AI_object_id,
+                        info_type: obj.info_type,
+                        oiv_id: obj.oiv_id
+                    };
+                });
             
-            // Определяем наличие данных ОИВ
-            let hasOIVData = false;
-            // Определяем наличие данных ИИ
-            let hasAIData = false;
-            
-            // 1. Если это объект ОИВ (info_type=1)
-            if (obj.info_type === 1) {
-                hasOIVData = true;
+            // Применяем фильтры ко всем объектам - ИСПРАВЛЕННАЯ ЛОГИКА
+            const filteredUniqueObjects = uniqueObjects.filter(obj => {
+                let hasOIVData = false;
+                let hasAIData = false;
                 
-                // Если у него есть AI_object_id, значит есть данные ИИ
-                if (obj.ai_id) {
+                if (obj.info_type === 1) {
+                    hasOIVData = true;
+                    if (obj.ai_id) {
+                        hasAIData = true;
+                    }
+                } else if (obj.info_type === 2) {
                     hasAIData = true;
                 }
+                
+                // ИСПРАВЛЕННАЯ ЛОГИКА ФИЛЬТРАЦИИ:
+                // 1. Оба выключены: только расхождения (hasOIVData !== hasAIData)
+                if (!localShowOIVData && !localShowAIData) {
+                    return hasOIVData !== hasAIData;
+                }
+                // 2. Только ИИ включен: все с данными ИИ (hasAIData)
+                else if (!localShowOIVData && localShowAIData) {
+                    return hasAIData;
+                }
+                // 3. Только ОИВ включен: все с данными ОИВ (hasOIVData)
+                else if (localShowOIVData && !localShowAIData) {
+                    return hasOIVData;
+                }
+                // 4. Оба включены: данные с обоими типами (hasOIVData && hasAIData)
+                else if (localShowOIVData && localShowAIData) {
+                    return hasOIVData && hasAIData;
+                }
+                
+                return false;
+            });
+            
+            // Добавляем строки в таблицу
+            filteredUniqueObjects.forEach(obj => {
+                const row = document.createElement('tr');
+                row.style.backgroundColor = '#333';
+                row.style.borderBottom = '1px solid #555';
+                
+                // Ячейка с названием объекта
+                const nameCell = document.createElement('td');
+                nameCell.textContent = obj.name;
+                nameCell.style.padding = '8px';
+                nameCell.style.border = '1px solid #555';
+                nameCell.style.color = '#cccccc';
+                row.appendChild(nameCell);
+                
+                // Ячейка с органом власти
+                const oivNameCell = document.createElement('td');
+                const oiv = data.oiv.find(o => o.id === obj.oiv_id);
+                oivNameCell.textContent = oiv ? oiv.name : 'Неизвестный орган';
+                oivNameCell.style.padding = '8px';
+                oivNameCell.style.border = '1px solid #555';
+                oivNameCell.style.color = '#cccccc';
+                row.appendChild(oivNameCell);
+                
+                // Определяем наличие данных
+                let hasOIVData = false;
+                let hasAIData = false;
+                
+                if (obj.info_type === 1) {
+                    hasOIVData = true;
+                    if (obj.ai_id) {
+                        hasAIData = true;
+                    }
+                } else if (obj.info_type === 2) {
+                    hasAIData = true;
+                }
+                
+                // Ячейка с данными ОИВ
+                const oivCell = document.createElement('td');
+                oivCell.style.textAlign = 'center';
+                oivCell.style.padding = '8px';
+                oivCell.style.border = '1px solid #555';
+                oivCell.style.color = '#cccccc';
+                oivCell.innerHTML = hasOIVData ? '<span class="checkmark">✓</span>' : '';
+                row.appendChild(oivCell);
+                
+                // Ячейка с данными ИИ
+                const aiCell = document.createElement('td');
+                aiCell.style.textAlign = 'center';
+                aiCell.style.padding = '8px';
+                aiCell.style.border = '1px solid #555';
+                aiCell.style.color = '#cccccc';
+                aiCell.innerHTML = hasAIData ? '<span class="checkmark">✓</span>' : '';
+                row.appendChild(aiCell);
+                
+                tbody.appendChild(row);
+            });
+            
+            // Если нет данных, показываем сообщение
+            if (filteredUniqueObjects.length === 0) {
+                const row = document.createElement('tr');
+                const cell = document.createElement('td');
+                cell.colSpan = 4;
+                cell.textContent = 'Нет данных для отображения';
+                cell.style.padding = '20px';
+                cell.style.textAlign = 'center';
+                cell.style.color = '#ccc';
+                row.appendChild(cell);
+                tbody.appendChild(row);
             }
-            // 2. Если это объект ИИ (info_type=2)
-            else if (obj.info_type === 2) {
-                hasAIData = true;
-            }
-            
-            // Ячейка с данными ОИВ
-            const oivCell = document.createElement('td');
-            oivCell.style.textAlign = 'center';
-            oivCell.style.padding = '8px';
-            oivCell.style.border = '1px solid #555';
-            oivCell.style.color = '#cccccc';
-            oivCell.innerHTML = hasOIVData ? '<span class="checkmark">✓</span>' : '';
-            row.appendChild(oivCell);
-            
-            // Ячейка с данными ИИ
-            const aiCell = document.createElement('td');
-            aiCell.style.textAlign = 'center';
-            aiCell.style.padding = '8px';
-            aiCell.style.border = '1px solid #555';
-            aiCell.style.color = '#cccccc';
-            aiCell.innerHTML = hasAIData ? '<span class="checkmark">✓</span>' : '';
-            row.appendChild(aiCell);
-            
-            tbody.appendChild(row);
-        });
+        };
+        
+        // Инициализируем таблицу
+        updateTable();
         
         table.appendChild(tbody);
         themeContent.appendChild(table);
+        
         themeContainer.appendChild(themeContent);
         
         // Обработчик для раскрытия/скрытия темы
@@ -1369,6 +1577,10 @@ function createObjectsTable(data, container) {
             }
         });
         
+        // Обработчики для чекбоксов фильтров
+        oivFilterCheckbox.addEventListener('change', updateTable);
+        aiFilterCheckbox.addEventListener('change', updateTable);
+        
         container.appendChild(themeContainer);
     });
 }
@@ -1377,8 +1589,8 @@ function createParametersTable(data, container) {
     if (!parametersData || parametersData.length === 0) {
         container.innerHTML = '<p>Нет данных для отображения</p>';
         return;
-    }
-    
+    }   
+
     // Получаем сохраненные фильтры
     const savedFilters = JSON.parse(localStorage.getItem('dashboardFilters') || '{}');
     const selectedThemes = savedFilters.themes || [];
@@ -1404,32 +1616,34 @@ function createParametersTable(data, container) {
             filteredObjectIds.includes(param.object_id));
     }
     
-    // Если после фильтрации нет параметров, показываем сообщение
-    if (filteredParameters.length === 0) {
-        container.innerHTML = '<p>Нет данных для отображения</p>';
-        return;
+    // Получаем состояние фильтров из localStorage
+    const savedDataFilters = localStorage.getItem('dataFilters');
+    let globalShowOIVData = true;
+    let globalShowAIData = true;
+    
+    if (savedDataFilters) {
+        const dataFilters = JSON.parse(savedDataFilters);
+        globalShowOIVData = dataFilters.showOIVData !== false;
+        globalShowAIData = dataFilters.showAIData !== false;
     }
     
     // Получаем уникальные темы из отфильтрованных параметров
     let themes = [...new Set(filteredParameters.map(param => param.theme))];
-    
-    // Собираем все AI_object_id для фильтрации (если нужно)
-    const aiObjectIds = new Set(
-        objectsData
-            .filter(obj => obj.AI_object_id)
-            .map(obj => obj.AI_object_id)
-    );
     
     themes.forEach(theme => {
         // Фильтруем параметры по текущей теме
         const themeParameters = filteredParameters.filter(param => param.theme === theme);
         if (themeParameters.length === 0) return;
         
-        // Создаем контейнер для таблицы параметра с возможностью раскрытия/скрытия
+        // Локальные настройки фильтров
+        let localShowOIVData = globalShowOIVData;
+        let localShowAIData = globalShowAIData;
+        
+        // Создаем контейнер для таблицы
         const themeContainer = document.createElement('div');
         themeContainer.className = 'theme-table-container';
         
-        // Заголовок темы с кнопкой раскрытия
+        // Заголовок темы
         const themeHeader = document.createElement('div');
         themeHeader.className = 'theme-header';
         themeHeader.style.cursor = 'pointer';
@@ -1458,7 +1672,7 @@ function createParametersTable(data, container) {
         themeHeader.appendChild(toggleIcon);
         themeContainer.appendChild(themeHeader);
         
-        // Контейнер для содержимого темы (изначально скрыт)
+        // Контейнер для содержимого темы
         const themeContent = document.createElement('div');
         themeContent.className = 'theme-content';
         themeContent.style.display = 'none';
@@ -1512,108 +1726,225 @@ function createParametersTable(data, container) {
         headerRow.appendChild(aiHeader);
         
         thead.appendChild(headerRow);
+        
+        // ДОБАВЛЯЕМ ФИЛЬТРЫ ПОД ЗАГОЛОВКАМИ ТАБЛИЦЫ
+        const filterRow = document.createElement('tr');
+        filterRow.style.backgroundColor = '#3a3a3a';
+        
+        // Пустая ячейка для названия параметра
+        const nameFilterCell = document.createElement('td');
+        nameFilterCell.style.padding = '5px';
+        nameFilterCell.style.border = '1px solid #555';
+        filterRow.appendChild(nameFilterCell);
+        
+        // Пустая ячейка для объекта управления
+        const objectFilterCell = document.createElement('td');
+        objectFilterCell.style.padding = '5px';
+        objectFilterCell.style.border = '1px solid #555';
+        filterRow.appendChild(objectFilterCell);
+        
+        // Пустая ячейка для органа власти
+        const oivNameFilterCell = document.createElement('td');
+        oivNameFilterCell.style.padding = '5px';
+        oivNameFilterCell.style.border = '1px solid #555';
+        filterRow.appendChild(oivNameFilterCell);
+        
+        // Фильтр для данных ОИВ
+        const oivFilterCell = document.createElement('td');
+        oivFilterCell.style.padding = '5px';
+        oivFilterCell.style.border = '1px solid #555';
+        oivFilterCell.style.textAlign = 'center';
+        
+        const oivFilterLabel = document.createElement('label');
+        oivFilterLabel.style.display = 'flex';
+        oivFilterLabel.style.alignItems = 'center';
+        oivFilterLabel.style.justifyContent = 'center';
+        oivFilterLabel.style.gap = '5px';
+        oivFilterLabel.style.color = '#ccc';
+        oivFilterLabel.style.fontSize = '12px';
+        
+        const oivFilterCheckbox = document.createElement('input');
+        oivFilterCheckbox.type = 'checkbox';
+        oivFilterCheckbox.id = `parameters-oiv-filter-${theme.replace(/\s+/g, '-')}`;
+        oivFilterCheckbox.checked = false;
+        
+        oivFilterLabel.appendChild(oivFilterCheckbox);
+        oivFilterCell.appendChild(oivFilterLabel);
+        filterRow.appendChild(oivFilterCell);
+        
+        // Фильтр для данных ИИ
+        const aiFilterCell = document.createElement('td');
+        aiFilterCell.style.padding = '5px';
+        aiFilterCell.style.border = '1px solid #555';
+        aiFilterCell.style.textAlign = 'center';
+        
+        const aiFilterLabel = document.createElement('label');
+        aiFilterLabel.style.display = 'flex';
+        aiFilterLabel.style.alignItems = 'center';
+        aiFilterLabel.style.justifyContent = 'center';
+        aiFilterLabel.style.gap = '5px';
+        aiFilterLabel.style.color = '#ccc';
+        aiFilterLabel.style.fontSize = '12px';
+        
+        const aiFilterCheckbox = document.createElement('input');
+        aiFilterCheckbox.type = 'checkbox';
+        aiFilterCheckbox.id = `parameters-ai-filter-${theme.replace(/\s+/g, '-')}`;
+        aiFilterCheckbox.checked = false;
+        
+        aiFilterLabel.appendChild(aiFilterCheckbox);
+        aiFilterCell.appendChild(aiFilterLabel);
+        filterRow.appendChild(aiFilterCell);
+        
+        // Добавляем строку фильтров в thead
+        thead.appendChild(filterRow);
         table.appendChild(thead);
         
         // Создаем тело таблицы
         const tbody = document.createElement('tbody');
         
-        // Собираем все AI_parameter_id для фильтрации
-        const aiParameterIds = new Set(
-            parametersData
-                .filter(param => param.AI_parameter_id)
-                .map(param => param.AI_parameter_id)
-        );
-        
-        // Группируем параметры по названию и объекту
-        const groupedParameters = {};
-        themeParameters.forEach(param => {
-            // Пропускаем параметры, которые являются AI-версиями других параметров
-            if (aiParameterIds.has(param.parameter_id)) {
-                return;
-            }
+        // Функция для обновления таблицы с текущими фильтрами
+        const updateTable = () => {
+            // Очищаем тело таблицы
+            tbody.innerHTML = '';
             
-            // Пропускаем параметры, чьи object_id есть в aiObjectIds (если нужно)
-            // if (aiObjectIds.has(param.object_id)) {
-            //     return;
-            // }
+            // Получаем текущие значения фильтров
+            localShowOIVData = oivFilterCheckbox.checked;
+            localShowAIData = aiFilterCheckbox.checked;
             
-            const key = `${param.parameter_name}_${param.object_id}`;
-            if (!groupedParameters[key]) {
-                groupedParameters[key] = {
-                    parameter_name: param.parameter_name,
-                    object_id: param.object_id,
-                    hasOIVData: false,
-                    hasAIData: false
-                };
-            }
+            // Собираем все AI_parameter_id для фильтрации
+            const aiParameterIds = new Set(
+                parametersData
+                    .filter(param => param.AI_parameter_id)
+                    .map(param => param.AI_parameter_id)
+            );
             
-            if (param.info_type === 1) {
-                groupedParameters[key].hasOIVData = true;
-                // Если у параметра с info_type=1 есть AI_parameter_id, отмечаем и hasAIData
-                if (param.AI_parameter_id) {
+            // Группируем параметры по названию и объекту
+            const groupedParameters = {};
+            themeParameters.forEach(param => {
+                // Пропускаем параметры, которые являются AI-версиями других параметров
+                if (aiParameterIds.has(param.parameter_id)) {
+                    return;
+                }
+                
+                const key = `${param.parameter_name}_${param.object_id}`;
+                if (!groupedParameters[key]) {
+                    groupedParameters[key] = {
+                        parameter_name: param.parameter_name,
+                        object_id: param.object_id,
+                        oiv_id: param.oiv_id,
+                        hasOIVData: false,
+                        hasAIData: false
+                    };
+                }
+                
+                // Определяем наличие данных ОИВ и ИИ
+                if (param.info_type === 1) {
+                    groupedParameters[key].hasOIVData = true;
+                    // Если у параметра с info_type=1 есть AI_parameter_id, отмечаем и hasAIData
+                    if (param.AI_parameter_id) {
+                        groupedParameters[key].hasAIData = true;
+                    }
+                } else if (param.info_type === 2) {
                     groupedParameters[key].hasAIData = true;
                 }
+            });
+            
+            // Применяем фильтры ко всем объектам - ИСПРАВЛЕННАЯ ЛОГИКА
+            const filteredGroupedParameters = Object.values(groupedParameters).filter(param => {
+                // ИСПРАВЛЕННАЯ ЛОГИКА ФИЛЬТРАЦИИ:
+                // 1. Оба выключены: только расхождения (hasOIVData !== hasAIData)
+                if (!localShowOIVData && !localShowAIData) {
+                    return param.hasOIVData !== param.hasAIData;
+                }
+                // 2. Только ИИ включен: все с данными ИИ (hasAIData)
+                else if (!localShowOIVData && localShowAIData) {
+                    return param.hasAIData;
+                }
+                // 3. Только ОИВ включен: все с данными ОИВ (hasOIVData)
+                else if (localShowOIVData && !localShowAIData) {
+                    return param.hasOIVData;
+                }
+                // 4. Оба включены: данные с обоими типами (hasOIVData && hasAIData)
+                else if (localShowOIVData && localShowAIData) {
+                    return param.hasOIVData && param.hasAIData;
+                }
+                
+                return false;
+            });
+            
+            // Добавляем строки в таблицу
+            filteredGroupedParameters.forEach(param => {
+                const row = document.createElement('tr');
+                row.style.backgroundColor = '#333';
+                row.style.borderBottom = '1px solid #555';
+                
+                // Ячейка с названием параметра
+                const nameCell = document.createElement('td');
+                nameCell.textContent = param.parameter_name;
+                nameCell.style.padding = '8px';
+                nameCell.style.border = '1px solid #555';
+                nameCell.style.color = '#cccccc';
+                row.appendChild(nameCell);
+                
+                // Ячейка с объектом управления - находим объект по object_id в objectsData
+                const objectCell = document.createElement('td');
+                const object = objectsData.find(obj => obj.object_id === param.object_id);
+                objectCell.textContent = object ? object.object_name : `Неизвестный объект (ID: ${param.object_id})`;
+                objectCell.style.padding = '8px';
+                objectCell.style.border = '1px solid #555';
+                objectCell.style.color = '#cccccc';
+                row.appendChild(objectCell);
+                
+                // Ячейка с органом власти
+                const oivNameCell = document.createElement('td');
+                const oiv = object ? data.oiv.find(o => o.id === object.oiv_id) : null;
+                oivNameCell.textContent = oiv ? oiv.name : 'Неизвестный орган';
+                oivNameCell.style.padding = '8px';
+                oivNameCell.style.border = '1px solid #555';
+                oivNameCell.style.color = '#cccccc';
+                row.appendChild(oivNameCell);
+                
+                // Ячейка с данными ОИВ - ВСЕГДА показываем фактическое наличие данных
+                const oivCell = document.createElement('td');
+                oivCell.style.textAlign = 'center';
+                oivCell.style.padding = '8px';
+                oivCell.style.border = '1px solid #555';
+                oivCell.style.color = '#cccccc';
+                oivCell.innerHTML = param.hasOIVData ? '<span class="checkmark">✓</span>' : '';
+                row.appendChild(oivCell);
+                
+                // Ячейка с данными ИИ - ВСЕГДА показываем фактическое наличие данных
+                const aiCell = document.createElement('td');
+                aiCell.style.textAlign = 'center';
+                aiCell.style.padding = '8px';
+                aiCell.style.border = '1px solid #555';
+                aiCell.style.color = '#cccccc';
+                aiCell.innerHTML = param.hasAIData ? '<span class="checkmark">✓</span>' : '';
+                row.appendChild(aiCell);
+                
+                tbody.appendChild(row);
+            });
+            
+            // Если нет данных, показываем сообщение
+            if (filteredGroupedParameters.length === 0) {
+                const row = document.createElement('tr');
+                const cell = document.createElement('td');
+                cell.colSpan = 5;
+                cell.textContent = 'Нет данных для отображения';
+                cell.style.padding = '20px';
+                cell.style.textAlign = 'center';
+                cell.style.color = '#ccc';
+                row.appendChild(cell);
+                tbody.appendChild(row);
             }
-            if (param.info_type === 2) {
-                groupedParameters[key].hasAIData = true;
-            }
-        });
+        };
         
-        // Добавляем строки в таблицу
-        Object.values(groupedParameters).forEach(param => {
-            const row = document.createElement('tr');
-            row.style.backgroundColor = '#333';
-            row.style.borderBottom = '1px solid #555';
-            
-            // Ячейка с названием параметра
-            const nameCell = document.createElement('td');
-            nameCell.textContent = param.parameter_name;
-            nameCell.style.padding = '8px';
-            nameCell.style.border = '1px solid #555';
-            nameCell.style.color = '#cccccc';
-            row.appendChild(nameCell);
-            
-            // Ячейка с объектом управления - находим объект по object_id в objectsData
-            const objectCell = document.createElement('td');
-            const object = objectsData.find(obj => obj.object_id === param.object_id);
-            objectCell.textContent = object ? object.object_name : `Неизвестный объект (ID: ${param.object_id})`;
-            objectCell.style.padding = '8px';
-            objectCell.style.border = '1px solid #555';
-            objectCell.style.color = '#cccccc';
-            row.appendChild(objectCell);
-            
-            // Ячейка с органом власти
-            const oivNameCell = document.createElement('td');
-            const oiv = object ? data.oiv.find(o => o.id === object.oiv_id) : null;
-            oivNameCell.textContent = oiv ? oiv.name : 'Неизвестный орган';
-            oivNameCell.style.padding = '8px';
-            oivNameCell.style.border = '1px solid #555';
-            oivNameCell.style.color = '#cccccc';
-            row.appendChild(oivNameCell);
-            
-            // Ячейка с данными ОИВ
-            const oivCell = document.createElement('td');
-            oivCell.style.textAlign = 'center';
-            oivCell.style.padding = '8px';
-            oivCell.style.border = '1px solid #555';
-            oivCell.style.color = '#cccccc';
-            oivCell.innerHTML = param.hasOIVData ? '<span class="checkmark">✓</span>' : '';
-            row.appendChild(oivCell);
-            
-            // Ячейка с данными ИИ
-            const aiCell = document.createElement('td');
-            aiCell.style.textAlign = 'center';
-            aiCell.style.padding = '8px';
-            aiCell.style.border = '1px solid #555';
-            aiCell.style.color = '#cccccc';
-            aiCell.innerHTML = param.hasAIData ? '<span class="checkmark">✓</span>' : '';
-            row.appendChild(aiCell);
-            
-            tbody.appendChild(row);
-        });
+        // Инициализируем таблицу
+        updateTable();
         
         table.appendChild(tbody);
         themeContent.appendChild(table);
+        
         themeContainer.appendChild(themeContent);
         
         // Обработчик для раскрытия/скрытия темы
@@ -1626,6 +1957,10 @@ function createParametersTable(data, container) {
                 toggleIcon.textContent = '+';
             }
         });
+        
+        // Обработчики для чекбоксов фильтров
+        oivFilterCheckbox.addEventListener('change', updateTable);
+        aiFilterCheckbox.addEventListener('change', updateTable);
         
         container.appendChild(themeContainer);
     });
@@ -1655,26 +1990,34 @@ function createIndicatorsTable(data, container) {
         filteredIndicators = filteredIndicators.filter(ind => selectedOIVs.includes(ind.oiv_id));
     }
     
-    // Если после фильтрации нет показателей, показываем сообщение
-    if (filteredIndicators.length === 0) {
-        container.innerHTML = '<p>Нет данных для отображения</p>';
-        return;
+    // Получаем состояние фильтров из localStorage
+    const savedDataFilters = localStorage.getItem('dataFilters');
+    let globalShowOIVData = true;
+    let globalShowAIData = true;
+    
+    if (savedDataFilters) {
+        const dataFilters = JSON.parse(savedDataFilters);
+        globalShowOIVData = dataFilters.showOIVData !== false;
+        globalShowAIData = dataFilters.showAIData !== false;
     }
     
     // Получаем уникальные темы из отфильтрованных показателей
     let themes = [...new Set(filteredIndicators.map(ind => ind.theme))];
     
-    // Остальной код функции остается без изменений, но используем filteredIndicators вместо indicatorsData
     themes.forEach(theme => {
         // Фильтруем показатели по текущей теме
         const themeIndicators = filteredIndicators.filter(ind => ind.theme === theme);
         if (themeIndicators.length === 0) return;
         
-        // Создаем контейнер для таблицы показателя с возможностью раскрытия/скрытия
+        // Локальные настройки фильтров
+        let localShowOIVData = globalShowOIVData;
+        let localShowAIData = globalShowAIData;
+        
+        // Создаем контейнер для таблицы
         const themeContainer = document.createElement('div');
         themeContainer.className = 'theme-table-container';
         
-        // Заголовок темы с кнопкой раскрытия
+        // Заголовок темы
         const themeHeader = document.createElement('div');
         themeHeader.className = 'theme-header';
         themeHeader.style.cursor = 'pointer';
@@ -1703,7 +2046,7 @@ function createIndicatorsTable(data, container) {
         themeHeader.appendChild(toggleIcon);
         themeContainer.appendChild(themeHeader);
         
-        // Контейнер для содержимого темы (изначально скрыт)
+        // Контейнер для содержимого темы
         const themeContent = document.createElement('div');
         themeContent.className = 'theme-content';
         themeContent.style.display = 'none';
@@ -1755,82 +2098,209 @@ function createIndicatorsTable(data, container) {
         headerRow.appendChild(aiHeader);
         
         thead.appendChild(headerRow);
+        
+        // Добавляем фильтры под заголовками
+        const filterRow = document.createElement('tr');
+        filterRow.style.backgroundColor = '#3a3a3a';
+        
+        // Пустая ячейка для названия показателя
+        const nameFilterCell = document.createElement('td');
+        nameFilterCell.style.padding = '5px';
+        nameFilterCell.style.border = '1px solid #555';
+        filterRow.appendChild(nameFilterCell);
+        
+        // Пустая ячейка для органа власти
+        const oivNameFilterCell = document.createElement('td');
+        oivNameFilterCell.style.padding = '5px';
+        oivNameFilterCell.style.border = '1px solid #555';
+        filterRow.appendChild(oivNameFilterCell);
+        
+        // Фильтр для данных ОИВ
+        const oivFilterCell = document.createElement('td');
+        oivFilterCell.style.padding = '5px';
+        oivFilterCell.style.border = '1px solid #555';
+        oivFilterCell.style.textAlign = 'center';
+        
+        const oivFilterLabel = document.createElement('label');
+        oivFilterLabel.style.display = 'flex';
+        oivFilterLabel.style.alignItems = 'center';
+        oivFilterLabel.style.justifyContent = 'center';
+        oivFilterLabel.style.gap = '5px';
+        oivFilterLabel.style.color = '#ccc';
+        oivFilterLabel.style.fontSize = '12px';
+        
+        const oivFilterCheckbox = document.createElement('input');
+        oivFilterCheckbox.type = 'checkbox';
+        oivFilterCheckbox.id = `indicators-oiv-filter-${theme.replace(/\s+/g, '-')}`;
+        oivFilterCheckbox.checked = false;
+        
+        oivFilterLabel.appendChild(oivFilterCheckbox);
+        oivFilterCell.appendChild(oivFilterLabel);
+        filterRow.appendChild(oivFilterCell);
+        
+        // Фильтр для данных ИИ
+        const aiFilterCell = document.createElement('td');
+        aiFilterCell.style.padding = '5px';
+        aiFilterCell.style.border = '1px solid #555';
+        aiFilterCell.style.textAlign = 'center';
+        
+        const aiFilterLabel = document.createElement('label');
+        aiFilterLabel.style.display = 'flex';
+        aiFilterLabel.style.alignItems = 'center';
+        aiFilterLabel.style.justifyContent = 'center';
+        aiFilterLabel.style.gap = '5px';
+        aiFilterLabel.style.color = '#ccc';
+        aiFilterLabel.style.fontSize = '12px';
+        
+        const aiFilterCheckbox = document.createElement('input');
+        aiFilterCheckbox.type = 'checkbox';
+        aiFilterCheckbox.id = `indicators-ai-filter-${theme.replace(/\s+/g, '-')}`;
+        aiFilterCheckbox.checked = false;
+        
+        aiFilterLabel.appendChild(aiFilterCheckbox);
+        aiFilterCell.appendChild(aiFilterLabel);
+        filterRow.appendChild(aiFilterCell);
+        
+        // Добавляем строку фильтров в thead
+        thead.appendChild(filterRow);
         table.appendChild(thead);
         
         // Создаем тело таблицы
         const tbody = document.createElement('tbody');
         
-        // Группируем показатели по названию и AI_indicator_id
-        const groupedIndicators = {};
-        themeIndicators.forEach(ind => {
-            const key = ind.AI_indicator_id ? ind.AI_indicator_id : ind.indicator_id;
-            if (!groupedIndicators[key]) {
-                groupedIndicators[key] = {
-                    indicator_name: ind.indicator_name,
-                    oiv_id: ind.oiv_id,
-                    hasOIVData: false,
-                    hasAIData: false
-                };
-            }
+        // Функция для обновления таблицы с текущими фильтрами
+        const updateTable = () => {
+            // Очищаем тело таблицы
+            tbody.innerHTML = '';
             
-            if (ind.info_type === 1) {
-                groupedIndicators[key].hasOIVData = true;
-                // Если у показателя с info_type=1 есть AI_indicator_id, отмечаем и hasAIData
-                if (ind.AI_indicator_id) {
+            // Получаем текущие значения фильтров
+            localShowOIVData = oivFilterCheckbox.checked;
+            localShowAIData = aiFilterCheckbox.checked;
+            
+            // Собираем все AI_indicator_id для фильтрации
+            const aiIndicatorIds = new Set(
+                indicatorsData
+                    .filter(ind => ind.AI_indicator_id)
+                    .map(ind => ind.AI_indicator_id)
+            );
+            
+            // Группируем показатели по названию
+            const groupedIndicators = {};
+            themeIndicators.forEach(ind => {
+                // Пропускаем показатели, которые являются AI-версиями других показателей
+                if (aiIndicatorIds.has(ind.indicator_id)) {
+                    return;
+                }
+                
+                const key = ind.indicator_name;
+                if (!groupedIndicators[key]) {
+                    groupedIndicators[key] = {
+                        indicator_name: ind.indicator_name,
+                        oiv_id: ind.oiv_id,
+                        hasOIVData: false,
+                        hasAIData: false
+                    };
+                }
+                
+                if (ind.info_type === 1) {
+                    groupedIndicators[key].hasOIVData = true;
+                    // Если у показателя с info_type=1 есть AI_indicator_id, отмечаем и hasAIData
+                    if (ind.AI_indicator_id) {
+                        groupedIndicators[key].hasAIData = true;
+                    }
+                }
+                if (ind.info_type === 2) {
                     groupedIndicators[key].hasAIData = true;
                 }
+            });
+            
+            // Применяем фильтры ко всем объектам - ИСПРАВЛЕННАЯ ЛОГИКА
+            const filteredGroupedIndicators = Object.values(groupedIndicators).filter(ind => {
+                // ИСПРАВЛЕННАЯ ЛОГИКА ФИЛЬТРАЦИИ:
+                // 1. Оба выключены: только расхождения (hasOIVData !== hasAIData)
+                if (!localShowOIVData && !localShowAIData) {
+                    return ind.hasOIVData !== ind.hasAIData;
+                }
+                // 2. Только ИИ включен: все с данными ИИ (hasAIData)
+                else if (!localShowOIVData && localShowAIData) {
+                    return ind.hasAIData;
+                }
+                // 3. Только ОИВ включен: все с данными ОИВ (hasOIVData)
+                else if (localShowOIVData && !localShowAIData) {
+                    return ind.hasOIVData;
+                }
+                // 4. Оба включены: данные с обоими типами (hasOIVData && hasAIData)
+                else if (localShowOIVData && localShowAIData) {
+                    return ind.hasOIVData && ind.hasAIData;
+                }
+                
+                return false;
+            });
+            
+            // Добавляем строки в таблицу
+            filteredGroupedIndicators.forEach(ind => {
+                const row = document.createElement('tr');
+                row.style.backgroundColor = '#333';
+                row.style.borderBottom = '1px solid #555';
+                
+                // Ячейка с названием показателя
+                const nameCell = document.createElement('td');
+                nameCell.textContent = ind.indicator_name;
+                nameCell.style.padding = '8px';
+                nameCell.style.border = '1px solid #555';
+                nameCell.style.color = '#cccccc';
+                row.appendChild(nameCell);
+                
+                // Ячейка с органом власти
+                const oivNameCell = document.createElement('td');
+                const oiv = data.oiv.find(o => o.id === ind.oiv_id);
+                oivNameCell.textContent = oiv ? oiv.name : 'Неизвестный орган';
+                oivNameCell.style.padding = '8px';
+                oivNameCell.style.border = '1px solid #555';
+                oivNameCell.style.color = '#cccccc';
+                row.appendChild(oivNameCell);
+                
+                // Ячейка с данными ОИВ
+                const oivCell = document.createElement('td');
+                oivCell.style.textAlign = 'center';
+                oivCell.style.padding = '8px';
+                oivCell.style.border = '1px solid #555';
+                oivCell.style.color = '#cccccc';
+                oivCell.innerHTML = ind.hasOIVData ? '<span class="checkmark">✓</span>' : '';
+                row.appendChild(oivCell);
+                
+                // Ячейка с данными ИИ
+                const aiCell = document.createElement('td');
+                aiCell.style.textAlign = 'center';
+                aiCell.style.padding = '8px';
+                aiCell.style.border = '1px solid #555';
+                aiCell.style.color = '#cccccc';
+                aiCell.innerHTML = ind.hasAIData ? '<span class="checkmark">✓</span>' : '';
+                row.appendChild(aiCell);
+                
+                tbody.appendChild(row);
+            });
+            
+            // Если нет данных, показываем сообщение
+            if (filteredGroupedIndicators.length === 0) {
+                const row = document.createElement('tr');
+                const cell = document.createElement('td');
+                cell.colSpan = 4;
+                cell.textContent = 'Нет данных для отображения';
+                cell.style.padding = '20px';
+                cell.style.textAlign = 'center';
+                cell.style.color = '#ccc';
+                row.appendChild(cell);
+                tbody.appendChild(row);
             }
-            if (ind.info_type === 2) {
-                groupedIndicators[key].hasAIData = true;
-            }
-        });
+        };
         
-        // Добавляем строки в таблицу
-        Object.values(groupedIndicators).forEach(ind => {
-            const row = document.createElement('tr');
-            row.style.backgroundColor = '#333';
-            row.style.borderBottom = '1px solid #555';
-            
-            // Ячейка с названием показателя
-            const nameCell = document.createElement('td');
-            nameCell.textContent = ind.indicator_name;
-            nameCell.style.padding = '8px';
-            nameCell.style.border = '1px solid #555';
-            nameCell.style.color = '#cccccc';
-            row.appendChild(nameCell);
-            
-            // Ячейка с органом власти
-            const oivNameCell = document.createElement('td');
-            const oiv = data.oiv.find(o => o.id === ind.oiv_id);
-            oivNameCell.textContent = oiv ? oiv.name : 'Неизвестный орган';
-            oivNameCell.style.padding = '8px';
-            oivNameCell.style.border = '1px solid #555';
-            oivNameCell.style.color = '#cccccc';
-            row.appendChild(oivNameCell);
-            
-            // Ячейка с данными ОИВ
-            const oivCell = document.createElement('td');
-            oivCell.style.textAlign = 'center';
-            oivCell.style.padding = '8px';
-            oivCell.style.border = '1px solid #555';
-            oivCell.style.color = '#cccccc';
-            oivCell.innerHTML = ind.hasOIVData ? '<span class="checkmark">✓</span>' : '';
-            row.appendChild(oivCell);
-            
-            // Ячейка с данными ИИ
-            const aiCell = document.createElement('td');
-            aiCell.style.textAlign = 'center';
-            aiCell.style.padding = '8px';
-            aiCell.style.border = '1px solid #555';
-            aiCell.style.color = '#cccccc';
-            aiCell.innerHTML = ind.hasAIData ? '<span class="checkmark">✓</span>' : '';
-            row.appendChild(aiCell);
-            
-            tbody.appendChild(row);
-        });
+        // Инициализируем таблицу
+        updateTable();
         
         table.appendChild(tbody);
         themeContent.appendChild(table);
+        
         themeContainer.appendChild(themeContent);
         
         // Обработчик для раскрытия/скрытия темы
@@ -1843,6 +2313,10 @@ function createIndicatorsTable(data, container) {
                 toggleIcon.textContent = '+';
             }
         });
+        
+        // Обработчики для чекбоксов фильтров
+        oivFilterCheckbox.addEventListener('change', updateTable);
+        aiFilterCheckbox.addEventListener('change', updateTable);
         
         container.appendChild(themeContainer);
     });
