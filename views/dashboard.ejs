@@ -29,9 +29,8 @@
             flex-wrap: wrap;
         }
       
-        .export-btn, .filter-btn {
+        .export-btn, .filter-btn, .clear-applied-btn, .clear-all-btn {
             padding: 10px 20px;
-            background-color: #4a6da7;
             color: white;
             border: none;
             border-radius: 4px;
@@ -40,18 +39,27 @@
             transition: background-color 0.3s;
         }
         
-        .export-btn:hover, .filter-btn:hover {
+        .export-btn {
+            background-color: #4a6da7;
+        }
+        
+        .export-btn:hover {
             background-color: #3a5a8f;
         }
         
         .filter-btn {
-            background-color: #a76d4a;
+            background-color: #4a6da7; /* Синий цвет как у экспорта */
         }
         
-        .filter-btn:hover {
-            background-color: #8f5a3a;
+       
+		.clear-all-btn {
+            background-color: #8a8a8a; 
         }
-        
+		
+        .clear-applied-btn {
+            background-color: #8a8a8a; 
+        }
+	
         .filters-container {
             display: flex;
             flex-direction: row;
@@ -219,13 +227,8 @@
             gap: 10px;
         }
 
-        #apply-filters {
-            background-color: #4CAF50;
-            color: white;
-        }
-
         #clear-filters {
-            background-color: #f44336;
+            background-color: #8a8a8a;
             color: white;
         }
         
@@ -281,7 +284,8 @@
         <div class="dashboard-header">
             <button class="export-btn" id="export-btn">Экспорт в Excel</button>
             <button class="filter-btn" id="apply-filters">Применить фильтры</button>
-            <button class="filter-btn" id="clear-filters">Очистить фильтры</button>
+            <button class="clear-applied-btn" id="clear-applied-filters">Очистить примененный фильтр</button>
+            <button class="clear-all-btn" id="clear-filters">Очистить все фильтры</button>
         </div>
         
         <div id="status-area"></div>

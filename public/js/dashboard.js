@@ -5,6 +5,8 @@ let indicatorsData = null;
 let availableThemes = [];
 let availableOIVs = [];
 
+let initialFilters = null;
+
 document.addEventListener('DOMContentLoaded', function() {
     console.log("Dashboard loaded");
     
@@ -13,6 +15,25 @@ document.addEventListener('DOMContentLoaded', function() {
         showError('Библиотека экспорта не загружена. Проверьте подключение к интернету.');
     } else {
         console.log('XLSX library loaded successfully');
+    }
+    
+    // Сохраняем первоначальные фильтры из URL или localStorage
+    const urlParams = new URLSearchParams(window.location.search);
+    const filtersFromUrl = urlParams.get('filters');
+    
+    if (filtersFromUrl) {
+        try {
+            initialFilters = JSON.parse(decodeURIComponent(filtersFromUrl));
+            localStorage.setItem('dashboardFilters', JSON.stringify(initialFilters));
+        } catch (e) {
+            console.error('Error parsing filters from URL:', e);
+        }
+    } else {
+        // Проверяем сохраненные фильтры из localStorage
+        const savedFilters = localStorage.getItem('dashboardFilters');
+        if (savedFilters) {
+            initialFilters = JSON.parse(savedFilters);
+        }
     }
     
     // Загружаем дополнительные данные
@@ -35,13 +56,12 @@ document.addEventListener('DOMContentLoaded', function() {
         parametersData = parameters;
         indicatorsData = indicators;
         
-        // Проверяем сохраненные фильтры из localStorage
-        const savedFilters = localStorage.getItem('dashboardFilters');
-        if (savedFilters) {
-            const filters = JSON.parse(savedFilters);
-            loadFilteredData(filters);
+        // Если есть первоначальные фильтры, используем их
+        if (initialFilters) {
+            loadFilteredData(initialFilters);
         } else {
-            showEmptyState();
+            // Если нет сохраненных фильтров, загружаем все данные
+            loadAllDataWithoutFilters();
         }
     })
     .catch(error => {
@@ -57,21 +77,38 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Добавляем обработчики для фильтры
+    // Добавляем обработчики для фильтров
     const applyFiltersBtn = document.getElementById('apply-filters');
-    const clearFiltersBtn = document.getElementById('clear-filters');
+    const clearAppliedFiltersBtn = document.getElementById('clear-applied-filters');
+    const clearAllFiltersBtn = document.getElementById('clear-filters');
     
     if (applyFiltersBtn) {
         applyFiltersBtn.addEventListener('click', showFiltersModal);
     }
     
-    if (clearFiltersBtn) {
-        clearFiltersBtn.addEventListener('click', clearFilters);
+    if (clearAppliedFiltersBtn) {
+        clearAppliedFiltersBtn.addEventListener('click', clearAppliedFilters);
+    }
+    
+    if (clearAllFiltersBtn) {
+        clearAllFiltersBtn.addEventListener('click', clearAllFilters);
     }
     
     // Создаем модальное окно для фильтров
     createFiltersModal();
 });
+
+function clearAppliedFilters() {
+    if (initialFilters) {
+        // Восстанавливаем первоначальные фильтры
+        localStorage.setItem('dashboardFilters', JSON.stringify(initialFilters));
+        loadFilteredData(initialFilters);
+        showSuccess('Примененные фильтры очищены, восстановлены первоначальные настройки');
+    } else {
+        // Если нет первоначальных фильтров, очищаем все
+        clearAllFilters();
+    }
+}
 
 function createFiltersModal() {
     // Проверяем, не существует ли уже модальное окно
@@ -281,34 +318,31 @@ function hideFiltersModal() {
 }
 
 function loadFiltersData() {
-    // Загружаем все данные для фильтрации (не только отфильтрованные)
-    fetch('/data/data.json')
-        .then(res => res.json())
-        .then(data => {
-            // Получаем уникальные темы из всех данных
-            availableThemes = [...new Set(data.edges.map(edge => edge.theme))];
-            
-            // Получаем все уникальные OIV из всех данных
-            const allOIVs = new Set();
-            data.edges.forEach(edge => {
-                allOIVs.add(edge.source);
-                allOIVs.add(edge.target);
-            });
-            
-            availableOIVs = Array.from(allOIVs).map(oivId => {
-                const oiv = data.oiv.find(o => o.id === oivId);
-                return {
-                    id: oivId,
-                    name: oiv ? oiv.name : oivId
-                };
-            });
-            
-            populateModalFilters();
-        })
-        .catch(error => {
-            console.error('Error loading filter data:', error);
-            showError('Ошибка загрузки данных для фильтров');
-        });
+    // Используем текущие отфильтрованные данные вместо загрузки всех данных
+    if (!currentData) {
+        showError('Нет данных для фильтрации');
+        return;
+    }
+    
+    // Получаем уникальные темы из текущих отфильтрованных данных
+    availableThemes = [...new Set(currentData.edges.map(edge => edge.theme))];
+    
+    // Получаем все уникальные OIV из текущих отфильтрованных данных
+    const allOIVs = new Set();
+    currentData.edges.forEach(edge => {
+        allOIVs.add(edge.source);
+        allOIVs.add(edge.target);
+    });
+    
+    availableOIVs = Array.from(allOIVs).map(oivId => {
+        const oiv = currentData.oiv.find(o => o.id === oivId);
+        return {
+            id: oivId,
+            name: oiv ? oiv.name : oivId
+        };
+    });
+    
+    populateModalFilters();
 }
 
 function populateModalFilters() {
@@ -333,7 +367,7 @@ function populateSelectedFiltersTab(filters) {
     themesContainer.innerHTML = '';
     oivContainer.innerHTML = '';
     
-    // Заполняем темы из текущих данных
+    // Заполняем темы из текущих отфильтрованных данных
     const currentThemes = currentData ? [...new Set(currentData.edges.map(edge => edge.theme))] : [];
     
     currentThemes.forEach(theme => {
@@ -346,13 +380,18 @@ function populateSelectedFiltersTab(filters) {
         input.value = theme;
         input.className = 'modal-theme-checkbox selected';
         
+        // Проверяем, есть ли тема в сохраненных фильтрах
+        if (filters.themes && filters.themes.includes(theme)) {
+            input.checked = true;
+        }
+        
         label.appendChild(input);
         label.appendChild(document.createTextNode(theme));
         checkboxDiv.appendChild(label);
         themesContainer.appendChild(checkboxDiv);
     });
     
-    // Отображаем все ОИВ из текущих данных
+    // Отображаем все ОИВ из текущих отфильтрованных данных
     const currentOIVs = new Set();
     if (currentData && currentData.edges) {
         currentData.edges.forEach(edge => {
@@ -373,25 +412,17 @@ function populateSelectedFiltersTab(filters) {
             input.value = oivId;
             input.className = 'modal-oiv-checkbox selected';
             
+            // Проверяем, есть ли OIV в сохраненных фильтрах
+            if (filters.oivIds && filters.oivIds.includes(oivId)) {
+                input.checked = true;
+            }
+            
             label.appendChild(input);
             label.appendChild(document.createTextNode(oiv.name));
             checkboxDiv.appendChild(label);
             oivContainer.appendChild(checkboxDiv);
         }
     });
-    
-    // Применяем сохраненные фильтры
-    if (filters.themes && filters.themes.length > 0) {
-        document.querySelectorAll('.modal-theme-checkbox.selected').forEach(checkbox => {
-            checkbox.checked = filters.themes.includes(checkbox.value);
-        });
-    }
-    
-    if (filters.oivIds && filters.oivIds.length > 0) {
-        document.querySelectorAll('.modal-oiv-checkbox.selected').forEach(checkbox => {
-            checkbox.checked = filters.oivIds.includes(checkbox.value);
-        });
-    }
 }
 
 function populateAllFiltersTab(filters) {
@@ -460,9 +491,9 @@ function applyFiltersFromModal() {
     const selectedThemesFromAll = [...document.querySelectorAll('.modal-theme-checkbox.all:checked')].map(cb => cb.value);
     const selectedOIVsFromAll = [...document.querySelectorAll('.modal-oiv-checkbox.all:checked')].map(cb => cb.value);
     
-    // Объединяем фильтры из обеих вкладок
-    const selectedThemes = [...new Set([...selectedThemesFromSelected, ...selectedThemesFromAll])];
-    const selectedOIVs = [...new Set([...selectedOIVsFromSelected, ...selectedOIVsFromAll])];
+    // Объединяем фильтры из обеих вкладок, но приоритет отдаем выбранным фильтрам
+    const selectedThemes = selectedThemesFromSelected.length > 0 ? selectedThemesFromSelected : selectedThemesFromAll;
+    const selectedOIVs = selectedOIVsFromSelected.length > 0 ? selectedOIVsFromSelected : selectedOIVsFromAll;
     
     // Сохраняем фильтры в localStorage
     const filters = {
@@ -471,11 +502,18 @@ function applyFiltersFromModal() {
     };
     localStorage.setItem('dashboardFilters', JSON.stringify(filters));
     
+    // Сохраняем как initialFilters, если их еще нет
+    if (!initialFilters) {
+        initialFilters = {...filters};
+    }
+    
     // Скрываем модальное окно
     hideFiltersModal();
     
     // Перезагружаем данные с новыми фильтрами
     loadFilteredData(filters);
+    
+    showSuccess('Фильтры применены');
 }
 
 function initializeFilters() {
@@ -647,6 +685,11 @@ function applySavedFiltersToUI(filters) {
 }
 
 function loadFilteredData(filters) {
+    // Сохраняем как initialFilters, если их еще нет
+    if (!initialFilters) {
+        initialFilters = {...filters};
+    }
+    
     // Загружаем данные и применяем фильтры
     fetch('/data/data.json')
         .then(res => res.json())
@@ -660,12 +703,15 @@ function loadFilteredData(filters) {
             } else {
                 // Фильтруем данные в соответствии с выбранными фильтрами
                 const filteredData = applyFiltersToData(data, filters);
-                if (shouldShowDashboard(filteredData, filters)) {
-                    createDashboardLayout(filteredData);
-                    createFilters(filteredData);
-                    applySavedFiltersToUI(filters);
-                } else {
-                    showEmptyState();
+                
+                // Всегда показываем дашборд, даже если данных нет
+                createDashboardLayout(filteredData);
+                createFilters(filteredData);
+                applySavedFiltersToUI(filters);
+                
+                // Показываем сообщение, если нет данных
+                if (filteredData.edges.length === 0) {
+                    showNoDataMessage();
                 }
             }
         })
@@ -675,50 +721,53 @@ function loadFilteredData(filters) {
         });
 }
 
+function showNoDataMessage() {
+    const container = document.getElementById('dashboard-container');
+    if (!container) return;
+    
+    const message = document.createElement('div');
+    message.className = 'no-data-message';
+    message.style.padding = '20px';
+    message.style.textAlign = 'center';
+    message.style.color = '#ccc';
+    message.innerHTML = `
+        <h3>Нет данных по выбранным фильтрам</h3>
+        <p>Попробуйте изменить параметры фильтрации</p>
+    `;
+    
+    container.appendChild(message);
+}
+
 function applyFiltersToData(data, filters) {
-    const filteredData = {
-        ...data,
-        edges: [],
-        oiv: []
-    };
+    let filteredEdges = data.edges;
+    let filteredOIVs = data.oiv;
 
-    // Фильтрация по темам
+    // Применяем фильтры тем
     if (filters.themes && filters.themes.length > 0) {
-        filteredData.edges = data.edges.filter(edge => filters.themes.includes(edge.theme));
-        
-        // Получаем OIV, участвующие в выбранных темах
-        const themeOIVs = new Set();
-        filteredData.edges.forEach(edge => {
-            themeOIVs.add(edge.source);
-            themeOIVs.add(edge.target);
-        });
-        
-        filteredData.oiv = data.oiv.filter(oiv => themeOIVs.has(oiv.id));
-    }
-    // Фильтрация по OIV (объединенный фильтр для источников и целей)
-    else if (filters.oivIds && filters.oivIds.length > 0) {
-        filteredData.edges = data.edges.filter(edge => 
-            filters.oivIds.includes(edge.source) || filters.oivIds.includes(edge.target));
-        
-        // Получаем все уникальные OIV (источники и цели)
-        const allOIVs = new Set();
-        filteredData.edges.forEach(edge => {
-            allOIVs.add(edge.source);
-            allOIVs.add(edge.target);
-        });
-        
-        filteredData.oiv = data.oiv.filter(oiv => allOIVs.has(oiv.id));
-    }
-    // Если нет подходящих фильтров, возвращаем пустые данные
-    else {
-        return {
-            ...data,
-            edges: [],
-            oiv: []
-        };
+        filteredEdges = filteredEdges.filter(edge => filters.themes.includes(edge.theme));
     }
 
-    return filteredData;
+    // Применяем фильтры OIV
+    if (filters.oivIds && filters.oivIds.length > 0) {
+        filteredEdges = filteredEdges.filter(edge => 
+            filters.oivIds.includes(edge.source) || filters.oivIds.includes(edge.target));
+    }
+
+    // Получаем все уникальные OIV из отфильтрованных связей
+    const allOIVs = new Set();
+    filteredEdges.forEach(edge => {
+        allOIVs.add(edge.source);
+        allOIVs.add(edge.target);
+    });
+
+    // Фильтруем OIV
+    filteredOIVs = data.oiv.filter(oiv => allOIVs.has(oiv.id));
+
+    return {
+        ...data,
+        edges: filteredEdges,
+        oiv: filteredOIVs
+    };
 }
 
 function shouldShowDashboard(data, filters) {
@@ -736,12 +785,27 @@ function showEmptyState() {
     const container = document.getElementById('dashboard-container');
     if (!container) return;
     
-    container.innerHTML = `
-        <div class="empty-state">
-            <h3>Выберите фильтр на 3D-схеме</h3>
-            <p>Для отображения данных выберите органы власти, темы, комплексы или другие фильтры в 3D-визуализации</p>
-        </div>
-    `;
+    // Проверяем, есть ли сохраненные фильтры
+    const savedFilters = localStorage.getItem('dashboardFilters');
+    
+    if (!savedFilters) {
+        // Если фильтров нет, загружаем все данные
+        loadAllDataWithoutFilters();
+    } else {
+        // Если есть фильтры, но нет данных, показываем сообщение
+        container.innerHTML = `
+            <div class="empty-state">
+                <h3>Нет данных по выбранным фильтрам</h3>
+                <p>Попробуйте изменить параметры фильтрации или сбросить фильтры</p>
+                <button id="reset-empty-filters" style="margin-top: 10px; padding: 8px 16px; background-color: #4a6da7; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    Сбросить фильтры
+                </button>
+            </div>
+        `;
+        
+        // Добавляем обработчик для кнопки сброса
+        document.getElementById('reset-empty-filters').addEventListener('click', clearAllFilters);
+    }
 }
 
 function createDashboardLayout(data) {
@@ -848,7 +912,7 @@ function applyFiltersFromUI() {
     loadFilteredData(filters);
 }
 
-function clearFilters() {
+function clearAllFilters() {
     // Очищаем все чекбоксы в модальном окне
     document.querySelectorAll('.modal-theme-checkbox, .modal-oiv-checkbox').forEach(checkbox => {
         checkbox.checked = false;
@@ -862,8 +926,13 @@ function clearFilters() {
     // Очищаем localStorage
     localStorage.removeItem('dashboardFilters');
     
+    // Сбрасываем initialFilters
+    initialFilters = null;
+    
     // Загружаем все данные без фильтров
     loadAllDataWithoutFilters();
+    
+    showSuccess('Все фильтры очищены');
 }
 
 function loadAllDataWithoutFilters() {
@@ -874,6 +943,10 @@ function loadAllDataWithoutFilters() {
             currentData = data;
             createDashboardLayout(data);
             createFilters(data);
+            
+            // Сбрасываем initialFilters при загрузке всех данных
+            initialFilters = null;
+            localStorage.removeItem('dashboardFilters');
         })
         .catch(error => {
             console.error('Error loading data:', error);
@@ -1773,6 +1846,51 @@ function createIndicatorsTable(data, container) {
         
         container.appendChild(themeContainer);
     });
+}
+
+function checkAndHandleEmptyData(data) {
+    if (!data.edges || data.edges.length === 0) {
+        showNoDataMessage();
+        return true;
+    }
+    return false;
+}
+
+// Модифицируйте createDashboardLayout
+function createDashboardLayout(data) {
+    const container = document.getElementById('dashboard-container');
+    if (!container) return;
+    
+    // Очищаем предыдущие сообщения
+    const existingMessage = container.querySelector('.no-data-message');
+    if (existingMessage) {
+        existingMessage.remove();
+    }
+    
+    // Сохраняем данные для использования в фильтрах и экспорте
+    currentData = data;
+    
+    // Проверяем, есть ли данные
+    if (checkAndHandleEmptyData(data)) {
+        return;
+    }
+    
+    // Очищаем контейнеры таблиц, если они существуют
+    const themesContent = document.getElementById('themes-table-content');
+    const objectsContent = document.getElementById('objects-table-content');
+    const parametersContent = document.getElementById('parameters-table-content');
+    const indicatorsContent = document.getElementById('indicators-table-content');
+    
+    if (themesContent) themesContent.innerHTML = '';
+    if (objectsContent) objectsContent.innerHTML = '';
+    if (parametersContent) parametersContent.innerHTML = '';
+    if (indicatorsContent) indicatorsContent.innerHTML = '';
+    
+    // Создаем таблицы, передавая текущие отфильтрованные данные
+    createThemesTable(data, themesContent);
+    createObjectsTable(data, objectsContent);
+    createParametersTable(data, parametersContent); 
+    createIndicatorsTable(data, indicatorsContent); 
 }
 
 function exportDashboardToExcel(data) {
