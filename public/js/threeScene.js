@@ -19,7 +19,8 @@ const oivModels = {
     "OIV001": "/models/DF.fbx",
     "OIV002": "/models/GKU.fbx",
 	"OIV030": "/models/DZM.fbx",
-	"OIV028": "/models/DONM.fbx"
+	"OIV028": "/models/DONM.fbx",
+	"OIV037": "/models/DGP.fbx"
 };
 
 const oivColors = {
