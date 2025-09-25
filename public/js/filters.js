@@ -12,6 +12,7 @@ let resetAllBtn = null;
 let applyFilters; 
 let filterModal = null; 
 let currentData = {};
+let showOnlyConnections = false;
 
 function createFilterModal() {
     window.currentFilters = {
@@ -189,82 +190,86 @@ function createFilterModal() {
     modal.querySelector('.filter-modal-close').addEventListener('click', closeModal);
     
     // Обработчик для кнопки "Сбросить"
-    modal.querySelector('.filter-modal-btn.reset').addEventListener('click', () => {
-        window.resetAllFilters(); 
-        closeModal();
-    });
+	modal.querySelector('.filter-modal-btn.reset').addEventListener('click', () => {
+		// Сбрасываем все чекбоксы в модальном окне
+		modal.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+			checkbox.checked = false;
+		});
+	});
    
     // Обработчик для кнопки "Применить"
-    const applyButton = modal.querySelector('.filter-modal-btn.apply');	
-    applyButton.addEventListener('click', () => {
-        if (modal.dataset.filterType === 'allData') {
-            const checkboxes = modal.querySelectorAll('input[type="checkbox"]:checked');
-            selectedFilters.allData = Array.from(checkboxes).map(cb => cb.value);
-            
-            // Обновляем отображение выбранных фильтров
-            updateSelectedFiltersDisplay();
-            
-            // Применяем фильтры
-            applyFilters();
-            closeModal();
-            return;
-        }		
-        
-        const checkboxes = modal.querySelectorAll('input[type="checkbox"]:checked');
-        const filterType = modal.dataset.filterType;
-        const containerId = modal.dataset.containerId;
-        
-        // Обновляем текущие фильтры
-        window.currentFilters[filterType] = Array.from(checkboxes).map(cb => cb.value);
-        
-        // Сначала снимаем все выделения в этой группе
-        document.querySelectorAll(`#${containerId} input[type="checkbox"]`).forEach(cb => {
-            cb.checked = false;
-        });
-        
-        // Затем отмечаем выбранные в модальном окне
-        checkboxes.forEach(cb => {
-            const originalCheckbox = document.querySelector(`#${containerId} input[value="${cb.value}"]`);
-            if (originalCheckbox) {
-                originalCheckbox.checked = true;
-            }
-        });
-        
-        // Обновляем счетчик выбранных фильтров
-        updateFilterCount(containerId, checkboxes.length);
-        
-        // Применяем фильтры
-        applyFilters();
-        closeModal();
-        
-        // Явно вызываем соответствующие функции выделения
-        if (filterType === 'complex') {
-            const selectedComplexes = Array.from(checkboxes).map(cb => cb.value);
-            if (window.updateSelectedComplexes) {
-                window.updateSelectedComplexes(selectedComplexes);
-            }
-        } else if (filterType === 'oiv') {
-            const selectedOIV = Array.from(checkboxes).map(cb => cb.value);
-            if (window.selectOIV) {
-                window.selectOIV(selectedOIV);
-            }
-        } else if (filterType === 'theme') {
-            const selectedThemes = Array.from(checkboxes).map(cb => cb.value);
-            if (window.selectTheme) {
-                window.selectTheme(selectedThemes);
-            }
-        } else if (filterType === 'strategy') {
-            const selectedStrategies = Array.from(checkboxes).map(cb => cb.value);
-            if (window.selectStrategy) {
-                window.selectStrategy(selectedStrategies);
-            }
-        } else if (filterType === 'program') {
-            const selectedPrograms = Array.from(checkboxes).map(cb => cb.value);
-            if (window.selectProgram) {
-                window.selectProgram(selectedPrograms);
-            }
-        }
-    });
+	const applyButton = modal.querySelector('.filter-modal-btn.apply');	
+	applyButton.addEventListener('click', () => {
+		if (modal.dataset.filterType === 'allData') {
+			// Код для расширенного фильтра (оставляем без изменений)
+			const checkboxes = modal.querySelectorAll('input[type="checkbox"]:checked');
+			selectedFilters.allData = Array.from(checkboxes).map(cb => cb.value);
+			
+			updateSelectedFiltersDisplay();
+			applyFilters();
+			closeModal();
+			return;
+		}		
+		
+		// ЗАКОММЕНТИРОВАТЬ ЭТУ СТРОКУ - НЕ СБРАСЫВАТЬ РАСШИРЕННЫЙ ФИЛЬТР
+		// selectedFilters.allData = [];
+		// updateSelectedFiltersDisplay();
+		
+		const checkboxes = modal.querySelectorAll('input[type="checkbox"]:checked');
+		const filterType = modal.dataset.filterType;
+		const containerId = modal.dataset.containerId;
+		
+		// Обновляем текущие фильтры
+		window.currentFilters[filterType] = Array.from(checkboxes).map(cb => cb.value);
+		
+		// Сначала снимаем все выделения в этой группе
+		document.querySelectorAll(`#${containerId} input[type="checkbox"]`).forEach(cb => {
+			cb.checked = false;
+		});
+		
+		// Затем отмечаем выбранные в модальном окне
+		checkboxes.forEach(cb => {
+			const originalCheckbox = document.querySelector(`#${containerId} input[value="${cb.value}"]`);
+			if (originalCheckbox) {
+				originalCheckbox.checked = true;
+			}
+		});
+		
+		// Обновляем счетчик выбранных фильтров
+		updateFilterCount(containerId, checkboxes.length);
+		
+		// Применяем фильтры
+		applyFilters();
+		closeModal();
+		
+		// Явно вызываем соответствующие функции выделения
+		if (filterType === 'complex') {
+			const selectedComplexes = Array.from(checkboxes).map(cb => cb.value);
+			if (window.updateSelectedComplexes) {
+				window.updateSelectedComplexes(selectedComplexes);
+			}
+		} else if (filterType === 'oiv') {
+			const selectedOIV = Array.from(checkboxes).map(cb => cb.value);
+			if (window.selectOIV) {
+				window.selectOIV(selectedOIV);
+			}
+		} else if (filterType === 'theme') {
+			const selectedThemes = Array.from(checkboxes).map(cb => cb.value);
+			if (window.selectTheme) {
+				window.selectTheme(selectedThemes);
+			}
+		} else if (filterType === 'strategy') {
+			const selectedStrategies = Array.from(checkboxes).map(cb => cb.value);
+			if (window.selectStrategy) {
+				window.selectStrategy(selectedStrategies);
+			}
+		} else if (filterType === 'program') {
+			const selectedPrograms = Array.from(checkboxes).map(cb => cb.value);
+			if (window.selectProgram) {
+				window.selectProgram(selectedPrograms);
+			}
+		}
+	});
     
     // Закрытие при клике вне модального окна
     modal.addEventListener('click', (e) => {
@@ -277,6 +282,55 @@ function createFilterModal() {
     filterModal = modal;
     
     return modal;
+}
+
+function syncFilterStates() {
+    const hasRegularFilters = selectedFilters.complexes.length > 0 || 
+                             selectedFilters.oiv.length > 0 || 
+                             selectedFilters.themes.length > 0 || 
+                             selectedFilters.strategies.length > 0 || 
+                             selectedFilters.programs.length > 0;
+    
+    const hasExtendedFilter = selectedFilters.allData.length > 0;
+    
+    // Обновляем счетчик расширенного фильтра
+    updateExtendedFilterCounter();
+    
+    if (hasRegularFilters && hasExtendedFilter) {
+        selectedFilters.allData = [];
+        updateSelectedFiltersDisplay();
+        updateExtendedFilterCounter();
+        console.log('Filter conflict detected - resetting extended filter');
+    }
+    
+    // Синхронизируем счетчики в зависимости от активного типа фильтра
+    if (hasExtendedFilter) {
+        // При активном расширенном фильтре показываем ВСЕ счетчики
+        syncFilterCountersForExtendedFilter();
+        
+    } else if (hasRegularFilters) {
+        let activeFilterType = null;
+        if (selectedFilters.strategies.length > 0) activeFilterType = 'strategy';
+        else if (selectedFilters.programs.length > 0) activeFilterType = 'program';
+        else if (selectedFilters.themes.length > 0) activeFilterType = 'theme';
+        else if (selectedFilters.oiv.length > 0) activeFilterType = 'oiv';
+        else if (selectedFilters.complexes.length > 0) activeFilterType = 'complex';
+        
+        syncFilterCounters(activeFilterType);
+        
+    } else {
+        // Нет активных фильтров - скрываем все счетчики
+        document.querySelectorAll('.filter-counter').forEach(counter => {
+            counter.style.display = 'none';
+        });
+    }
+    
+    const hasActiveFilters = hasRegularFilters || hasExtendedFilter;
+    const resetAllBtn = document.getElementById('reset-all-filters');
+    if (resetAllBtn) {
+        resetAllBtn.disabled = !hasActiveFilters;
+        resetAllBtn.classList.toggle('disabled', !hasActiveFilters);
+    }
 }
 
 function createSectionWithSearch(title, type, items, selectedValues) {
@@ -364,6 +418,58 @@ function updateFilterCount(containerId, count) {
     }
 }
 
+function syncFilterCounters(activeFilterType = null) {
+    // Скрываем все счетчики сначала
+    document.querySelectorAll('.filter-counter').forEach(counter => {
+        counter.style.display = 'none';
+    });
+    
+    // Если указан активный тип фильтра, показываем только его счетчик
+    if (activeFilterType) {
+        const activeContainerId = `${activeFilterType}-filters`;
+        const activeCounter = document.querySelector(`#${activeContainerId}`)?.closest('.filter-group')?.querySelector('.filter-counter');
+        if (activeCounter) {
+            activeCounter.style.display = 'inline';
+        }
+    } else {
+        // Показываем все счетчики, если нет активного типа
+        document.querySelectorAll('.filter-counter').forEach(counter => {
+            counter.style.display = 'inline';
+        });
+    }
+}
+
+function updateExtendedFilterCounter() {
+    const extendedFilterHeader = document.querySelector('.filter-group h3');
+    if (!extendedFilterHeader) return;
+    
+    const oldCounter = extendedFilterHeader.querySelector('.filter-counter');
+    if (oldCounter) oldCounter.remove();
+    
+    const count = selectedFilters.allData.length;
+    if (count > 0) {
+        const counter = document.createElement('span');
+        counter.className = 'filter-counter';
+        counter.textContent = ` (${count})`;
+        counter.style.marginLeft = '8px';
+        counter.style.color = '#4a6da7';
+        extendedFilterHeader.appendChild(counter);
+    }
+}
+
+function syncFilterCountersForExtendedFilter() {
+    // Показываем ВСЕ счетчики при активном расширенном фильтре
+    document.querySelectorAll('.filter-counter').forEach(counter => {
+        counter.style.display = 'inline';
+    });
+    
+    // Особенно убедимся, что счетчик расширенного фильтра виден
+    const extendedCounter = document.querySelector('.filter-group h3')?.querySelector('.filter-counter');
+    if (extendedCounter) {
+        extendedCounter.style.display = 'inline';
+    }
+}
+
 function updateSelectedFiltersDisplay() {
     const selectedFiltersContainer = document.getElementById('selected-all-data-filters');
     if (!selectedFiltersContainer) return;
@@ -375,30 +481,38 @@ function updateSelectedFiltersDisplay() {
         const selectedItems = selectedFilters.allData.map(item => {
             const [type, id] = item.split(':');
             let name = '';
+            let displayName = '';
             
             switch(type) {
                 case 'complex':
                     const complex = currentData.complexes?.find(c => c.id === id);
                     name = complex ? complex.name : id;
+                    displayName = name;
                     break;
                 case 'oiv':
                     const oiv = currentData.oiv?.find(o => o.id === id);
                     name = oiv ? oiv.name : id;
+                    displayName = name;
                     break;
                 case 'theme':
                     name = id;
+                    const themeObj = currentData.themes?.find(t => t.id === id);
+                    displayName = themeObj ? themeObj.name || id : id;
                     break;
                 case 'strategy':
                     name = id;
+                    displayName = id; // Стратегии обычно имеют текстовые названия
                     break;
                 case 'program':
                     name = id;
+                    displayName = id; // Программы обычно имеют текстовые названия
                     break;
                 default:
                     name = id;
+                    displayName = id;
             }
             
-            return { type, id, name };
+            return { type, id, name, displayName };
         }).filter(item => item.name); // Фильтруем элементы с пустыми именами
         
         // Группируем по типам
@@ -413,19 +527,62 @@ function updateSelectedFiltersDisplay() {
             typeTitle.textContent = getTypeLabel(type) + ':';
             typeTitle.style.fontWeight = 'bold';
             typeTitle.style.marginTop = '10px';
+            typeTitle.style.color = '#4a6da7';
             selectedFiltersContainer.appendChild(typeTitle);
             
             grouped[type].forEach(item => {
                 const itemElement = document.createElement('div');
-                itemElement.textContent = item.name;
+                itemElement.textContent = item.displayName;
                 itemElement.style.marginLeft = '15px';
                 itemElement.style.padding = '2px 0';
+                itemElement.style.color = '#e0e0e0';
                 selectedFiltersContainer.appendChild(itemElement);
             });
         });
     } else {
         selectedFiltersContainer.innerHTML = '<div style="color: #999; font-style: italic;">Фильтры не выбраны</div>';
     }
+}
+function updateResetButtonState() {
+    const hasActiveFilters = selectedFilters.allData.length > 0 || 
+        selectedFilters.complexes.length > 0 || 
+        selectedFilters.oiv.length > 0 || 
+        selectedFilters.themes.length > 0 || 
+        selectedFilters.strategies.length > 0 || 
+        selectedFilters.programs.length > 0;
+    
+    const resetAllBtn = document.getElementById('reset-all-filters');
+    if (resetAllBtn) {
+        resetAllBtn.disabled = !hasActiveFilters;
+        resetAllBtn.classList.toggle('disabled', !hasActiveFilters);
+    }
+}
+
+function groupExtendedFilterItems(selectedItems) {
+    const grouped = {
+        complexes: [],
+        oiv: [],
+        themes: [],
+        strategies: [],
+        programs: []
+    };
+    
+    selectedItems.forEach(item => {
+        if (item.includes(':')) {
+            const [type, id] = item.split(':');
+            if (grouped[type]) {
+                grouped[type].push(id);
+            }
+        } else {
+            if (currentData.complexes?.find(c => c.id === item)) grouped.complexes.push(item);
+            else if (currentData.oiv?.find(o => o.id === item)) grouped.oiv.push(item);
+            else if (currentData.themes?.find(t => t.id === item)) grouped.themes.push(item);
+            else if (currentData.strategies?.includes(item)) grouped.strategies.push(item);
+            else if (currentData.programs?.includes(item)) grouped.programs.push(item);
+        }
+    });
+    
+    return grouped;
 }
 
 window.resetAllFilters = function() {
@@ -436,7 +593,14 @@ window.resetAllFilters = function() {
     
     // Сбрасываем расширенный фильтр
     selectedFilters.allData = [];
+    selectedFilters.complexes = [];
+    selectedFilters.oiv = [];
+    selectedFilters.themes = [];
+    selectedFilters.strategies = [];
+    selectedFilters.programs = [];
+    
     updateSelectedFiltersDisplay();
+    updateExtendedFilterCounter(); // ОБНОВИТЬ СЧЕТЧИК
     
     // Сбрасываем поиск
     const searchInput = document.getElementById('global-search');
@@ -454,12 +618,8 @@ window.resetAllFilters = function() {
         }
     });
     
-    // Делаем кнопку сброса неактивной
-    const resetAllBtn = document.getElementById('reset-all-filters');
-    if (resetAllBtn) {
-        resetAllBtn.classList.add('disabled');
-        resetAllBtn.disabled = true;
-    }
+    // ОБНОВЛЯЕМ СОСТОЯНИЕ КНОПКИ СБРОСА
+    updateResetButtonState();
     
     // Применяем изменения
     if (window.applyFilters) {
@@ -567,6 +727,29 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
+		function resetExtendedFilter() {
+			selectedFilters.allData = [];
+			updateSelectedFiltersDisplay();
+			
+			// Также сбрасываем обычные фильтры при сбросе расширенного
+			document.querySelectorAll('.filter-item input[type="checkbox"]').forEach(checkbox => {
+				checkbox.checked = false;
+			});
+			
+			// Сбрасываем поиск
+			const searchInput = document.getElementById('global-search');
+			if (searchInput) searchInput.value = '';
+			
+			// Обновляем счетчики
+			updateFilterCount('complex-filters', 0);
+			updateFilterCount('oiv-filters', 0);
+			updateFilterCount('theme-filters', 0);
+			updateFilterCount('strategy-filters', 0);
+			updateFilterCount('program-filters', 0);
+			
+			// Применяем сброс в 3D сцене
+			if (window.resetSelection) window.resetSelection();
+		}
 		// Обработчик для заголовка "Расширенный фильтр"
 		header.addEventListener('click', function(e) {
 			let modal = document.querySelector('.filter-modal');
@@ -682,8 +865,8 @@ document.addEventListener('DOMContentLoaded', function() {
 			// Удаляем все предыдущие обработчики
 			const newApplyButton = applyButton.cloneNode(true);
 			applyButton.parentNode.replaceChild(newApplyButton, applyButton);
-			
-			// Правильный обработчик для расширенного фильтра
+
+			// Обработчик для кнопки "Применить" в расширенном фильтре
 			newApplyButton.addEventListener('click', function() {
 				const checkboxes = modal.querySelectorAll('input[type="checkbox"]:checked');
 				const selectedItems = Array.from(checkboxes).map(cb => cb.value);
@@ -691,35 +874,35 @@ document.addEventListener('DOMContentLoaded', function() {
 				// Сохраняем выбранные элементы
 				selectedFilters.allData = selectedItems;
 				
-				// Группируем выбранные элементы по типам
-				const groupedFilters = {
-					complexes: [],
-					oiv: [],
-					themes: [],
-					strategies: [],
-					programs: []
-				};
+				// Сбрасываем обычные фильтры при применении расширенного
+				clearRegularFilters();
 				
-				selectedItems.forEach(item => {
-					const [type, id] = item.split(':');
-					if (groupedFilters[type + 's']) {
-						groupedFilters[type + 's'].push(id);
-					}
-				});
+				console.log('Extended filter selected items:', selectedItems);
 				
-				// Применяем фильтры к 3D сцене
-				if (window.applyCascadeFilter) {
-					window.applyCascadeFilter(groupedFilters);
-				}
+				// Применяем расширенный фильтр
+				applyExtendedFilter(selectedItems);
 				
 				// Обновляем отображение выбранных фильтров
 				updateSelectedFiltersDisplay();
+				
+				// ОБНОВЛЯЕМ ВСЕ СЧЕТЧИКИ
+				const groupedFilters = groupExtendedFilterItems(selectedItems);
+				updateFilterCount('complex-filters', groupedFilters.complexes.length);
+				updateFilterCount('oiv-filters', groupedFilters.oiv.length);
+				updateFilterCount('theme-filters', groupedFilters.themes.length);
+				updateFilterCount('strategy-filters', groupedFilters.strategies.length);
+				updateFilterCount('program-filters', groupedFilters.programs.length);
+				
+				// Обновляем кнопку сброса
+				updateResetButtonState();
 				
 				// Закрываем модальное окно
 				if (modal.closeModal) {
 					modal.closeModal();
 				}
 			});
+			
+			updateExtendedFilterCounter();
 		});
 			
         // Вспомогательная функция для создания секции
@@ -753,53 +936,57 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 header.style.cursor = 'pointer';
                 
-                header.addEventListener('click', function(e) {
-                    const container = this.nextElementSibling;
-                    if (!container) return;
-                    
-                    const filterType = container.id.replace('-filters', '');
-                    let modal = document.querySelector('.filter-modal');
-                    if (!modal) {
-                        modal = createFilterModal();
-                    }
-                    
-                    modal.querySelector('#modal-title').textContent = this.textContent.trim();
-                    modal.dataset.filterType = filterType;
-                    modal.dataset.containerId = container.id;
-                    
-                    const filterContainer = modal.querySelector('#modal-filter-container');
-                    filterContainer.innerHTML = '';
-                    
-                    // Получаем все элементы фильтра из соответствующего контейнера
-                    const filters = document.querySelectorAll(`#${container.id} .filter-item`);
-                    
-                    filters.forEach(filter => {
-                        const checkbox = filter.querySelector('input[type="checkbox"]');
-                        const label = filter.querySelector('label');
-                        
-                        if (checkbox && label) {
-                            const modalItem = document.createElement('div');
-                            modalItem.className = 'modal-filter-item';
-                            
-                            const newCheckbox = document.createElement('input');
-                            newCheckbox.type = 'checkbox';
-                            newCheckbox.id = `modal-${checkbox.id}`;
-                            newCheckbox.value = checkbox.value;
-                            newCheckbox.dataset.type = checkbox.dataset.type;
-                            newCheckbox.checked = checkbox.checked;
-                            
-                            const newLabel = document.createElement('label');
-                            newLabel.htmlFor = newCheckbox.id;
-                            newLabel.innerHTML = label.innerHTML;
-                            
-                            modalItem.appendChild(newCheckbox);
-                            modalItem.appendChild(newLabel);
-                            filterContainer.appendChild(modalItem);
-                        }
-                    });
-                    
-                    modal.style.display = 'flex';
-                });
+				header.addEventListener('click', function(e) {	
+					const container = this.nextElementSibling;
+					if (!container) return;
+					
+					const filterType = container.id.replace('-filters', '');
+					let modal = document.querySelector('.filter-modal');
+					if (!modal) {
+						modal = createFilterModal();
+					}
+					
+					modal.querySelector('#modal-title').textContent = this.textContent.trim();
+					modal.dataset.filterType = filterType;
+					modal.dataset.containerId = container.id;
+
+					// ЗАКОММЕНТИРОВАТЬ ЭТУ СТРОКУ - НЕ СБРАСЫВАТЬ РАСШИРЕННЫЙ ФИЛЬТР ПРИ ОТКРЫТИИ МОДАЛЬНОГО ОКНА
+					// selectedFilters.allData = [];
+					// updateSelectedFiltersDisplay();
+					
+					const filterContainer = modal.querySelector('#modal-filter-container');
+					filterContainer.innerHTML = '';
+					
+					// Получаем все элементы фильтра из соответствующего контейнера
+					const filters = document.querySelectorAll(`#${container.id} .filter-item`);
+					
+					filters.forEach(filter => {
+						const checkbox = filter.querySelector('input[type="checkbox"]');
+						const label = filter.querySelector('label');
+						
+						if (checkbox && label) {
+							const modalItem = document.createElement('div');
+							modalItem.className = 'modal-filter-item';
+							
+							const newCheckbox = document.createElement('input');
+							newCheckbox.type = 'checkbox';
+							newCheckbox.id = `modal-${checkbox.id}`;
+							newCheckbox.value = checkbox.value;
+							newCheckbox.dataset.type = checkbox.dataset.type;
+							newCheckbox.checked = checkbox.checked;
+							
+							const newLabel = document.createElement('label');
+							newLabel.htmlFor = newCheckbox.id;
+							newLabel.innerHTML = label.innerHTML;
+							
+							modalItem.appendChild(newCheckbox);
+							modalItem.appendChild(newLabel);
+							filterContainer.appendChild(modalItem);
+						}
+					});
+					
+					modal.style.display = 'flex';
+				});
                 
                 if (header.nextElementSibling) {
                     header.nextElementSibling.style.display = 'none';
@@ -1083,79 +1270,172 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+
     // Функция для применения фильтров
 	applyFilters = function() {
 		if (!window.currentData) return;
 		
+		const searchInput = document.getElementById('global-search');
 		const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+		
 		const selectedComplexes = Array.from(document.querySelectorAll('#complex-filters input[type="checkbox"]:checked')).map(cb => cb.value);
 		const selectedOIV = Array.from(document.querySelectorAll('#oiv-filters input[type="checkbox"]:checked')).map(cb => cb.value);
 		const selectedThemes = Array.from(document.querySelectorAll('#theme-filters input[type="checkbox"]:checked')).map(cb => cb.value);
 		const selectedStrategies = Array.from(document.querySelectorAll('#strategy-filters input[type="checkbox"]:checked')).map(cb => cb.value);
 		const selectedPrograms = Array.from(document.querySelectorAll('#program-filters input[type="checkbox"]:checked')).map(cb => cb.value);
-		const selectedProjects = Array.from(document.querySelectorAll('#project-filters input[type="checkbox"]:checked')).map(cb => cb.value);
 		
-		// Проверяем, есть ли активные фильтры
-		const hasActiveFilters = selectedComplexes.length > 0 || selectedOIV.length > 0 || 
-							   selectedThemes.length > 0 || selectedStrategies.length > 0 || 
-							   selectedPrograms.length > 0 || selectedProjects.length > 0 || 
-							   searchTerm.length > 0 || selectedFilters.allData.length > 0;
+		// Обновляем счетчик расширенного фильтра
+		updateExtendedFilterCounter();
 		
-		// Обновляем состояние кнопки сброса
-		if (resetAllBtn) {
-			resetAllBtn.disabled = !hasActiveFilters;
-			resetAllBtn.classList.toggle('disabled', !hasActiveFilters);
-		}
+		// Определяем активный тип фильтра для отображения счетчика
+		let activeFilterType = null;
+		if (selectedStrategies.length > 0) activeFilterType = 'strategy';
+		else if (selectedPrograms.length > 0) activeFilterType = 'program';
+		else if (selectedThemes.length > 0) activeFilterType = 'theme';
+		else if (selectedOIV.length > 0) activeFilterType = 'oiv';
+		else if (selectedComplexes.length > 0) activeFilterType = 'complex';
 		
-		// Обновляем счетчики фильтров
-		updateFilterCount('complex-filters', selectedComplexes.length);
-		updateFilterCount('oiv-filters', selectedOIV.length);
-		updateFilterCount('theme-filters', selectedThemes.length);
-		updateFilterCount('strategy-filters', selectedStrategies.length);
-		updateFilterCount('program-filters', selectedPrograms.length);
-		updateFilterCount('project-filters', selectedProjects.length);
+		// Синхронизируем счетчики
+		syncFilterCounters(activeFilterType);
 		
-		// Если есть выбранные фильтры в расширенном фильтре, применяем их
-		if (selectedFilters.allData.length > 0) {
-			const groupedFilters = {
-				complexes: [],
-				oiv: [],
-				themes: [],
-				strategies: [],
-				programs: []
-			};
+		// Остальной код функции без изменений...
+		selectedFilters.complexes = selectedComplexes;
+		selectedFilters.oiv = selectedOIV;
+		selectedFilters.themes = selectedThemes;
+		selectedFilters.strategies = selectedStrategies;
+		selectedFilters.programs = selectedPrograms;
+		
+		// Проверяем, есть ли активные обычные фильтры
+		const hasActiveRegularFilters = selectedComplexes.length > 0 || selectedOIV.length > 0 || 
+									   selectedThemes.length > 0 || selectedStrategies.length > 0 || 
+									   selectedPrograms.length > 0 || searchTerm.length > 0;
+		
+		if (hasActiveRegularFilters) {
+			selectedFilters.allData = [];
+			updateSelectedFiltersDisplay();
+			updateExtendedFilterCounter();
 			
-			selectedFilters.allData.forEach(item => {
-				const [type, id] = item.split(':');
-				if (groupedFilters[type + 's']) {
-					groupedFilters[type + 's'].push(id);
-				}
-			});
-			
-			// Применяем фильтры к 3D сцене
-			if (window.applyCascadeFilter) {
-				window.applyCascadeFilter({
-					...groupedFilters,
-					showOnlyConnections: showOnlyConnections
-				});
-			}
-			return;
-		}
-		
-		// Применяем обычные фильтры
-		if (window.applyFilter) {
-			window.applyFilter({
+			applyRegularFilters({
 				complexes: selectedComplexes,
 				oiv: selectedOIV,
 				themes: selectedThemes,
 				strategies: selectedStrategies,
 				programs: selectedPrograms,
-				projects: selectedProjects,
-				searchTerm: searchTerm,
+				showOnlyConnections: showOnlyConnections
+			});
+		} 
+		else if (selectedFilters.allData.length > 0) {
+			applyExtendedFilter(selectedFilters.allData);
+		} else {
+			if (window.resetSelection) window.resetSelection();
+		}
+		
+		updateResetButtonState();
+		
+		// Обновляем счетчики обычных фильтров только если активны обычные фильтры
+		if (hasActiveRegularFilters) {
+			updateFilterCount('complex-filters', selectedComplexes.length);
+			updateFilterCount('oiv-filters', selectedOIV.length);
+			updateFilterCount('theme-filters', selectedThemes.length);
+			updateFilterCount('strategy-filters', selectedStrategies.length);
+			updateFilterCount('program-filters', selectedPrograms.length);
+		}
+		
+		syncFilterStates();
+	};
+
+	// Отдельная функция для применения обычных фильтров
+	function applyRegularFilters(filterParams) {
+		if (!filterParams) return;
+		
+		console.log('Applying regular filter:', filterParams);
+		
+		// Применяем фильтры к 3D сцене через соответствующую функцию
+		if (window.applyCascadeFilter3D) {
+			window.applyCascadeFilter3D({
+				complexes: filterParams.complexes || [],
+				oiv: filterParams.oiv || [],
+				themes: filterParams.themes || [],
+				strategies: filterParams.strategies || [],
+				programs: filterParams.programs || [],
+				showOnlyConnections: filterParams.showOnlyConnections || false
+			});
+		}
+	}
+
+	// Отдельная функция для применения расширенного фильтра
+	function applyExtendedFilter(selectedItems) {
+		console.log('Applying extended filter with items:', selectedItems);
+		
+		const groupedFilters = {
+			complexes: [],
+			oiv: [],
+			themes: [],
+			strategies: [],
+			programs: []
+		};
+		
+		// Правильная группировка для расширенного фильтра
+		selectedItems.forEach(item => {
+			if (item.includes(':')) {
+				const [type, id] = item.split(':');
+				
+				switch(type) {
+					case 'complex':
+						groupedFilters.complexes.push(id);
+						break;
+					case 'oiv':
+						groupedFilters.oiv.push(id);
+						break;
+					case 'theme':
+						groupedFilters.themes.push(id);
+						break;
+					case 'strategy':
+						groupedFilters.strategies.push(id);
+						break;
+					case 'program':
+						groupedFilters.programs.push(id);
+						break;
+				}
+			} else {
+				// Новый формат: просто ID
+				if (currentData.complexes?.find(c => c.id === item)) {
+					groupedFilters.complexes.push(item);
+				} else if (currentData.oiv?.find(o => o.id === item)) {
+					groupedFilters.oiv.push(item);
+				} else if (currentData.themes?.find(t => t.id === item)) {
+					groupedFilters.themes.push(item);
+				} else if (currentData.strategies?.includes(item)) {
+					groupedFilters.strategies.push(item);
+				} else if (currentData.programs?.includes(item)) {
+					groupedFilters.programs.push(item);
+				}
+			}
+		});
+		
+		console.log('Extended filter grouped:', groupedFilters);
+		
+		// ВАЖНОЕ ИСПРАВЛЕНИЕ: Обновляем счетчики для ВСЕХ типов фильтров
+		updateFilterCount('complex-filters', groupedFilters.complexes.length);
+		updateFilterCount('oiv-filters', groupedFilters.oiv.length);
+		updateFilterCount('theme-filters', groupedFilters.themes.length);
+		updateFilterCount('strategy-filters', groupedFilters.strategies.length);
+		updateFilterCount('program-filters', groupedFilters.programs.length);
+		
+		// Обновляем счетчик расширенного фильтра
+		updateExtendedFilterCounter();
+		
+		// Синхронизируем состояние счетчиков - показываем все счетчики для расширенного фильтра
+		syncFilterCountersForExtendedFilter();
+		
+		// Применяем фильтры к 3D сцене
+		if (window.applyCascadeFilter3D) {
+			window.applyCascadeFilter3D({
+				...groupedFilters,
 				showOnlyConnections: showOnlyConnections
 			});
 		}
-	};
+	}
     
     function debounce(func, wait) {
         let timeout;
@@ -1206,3 +1486,49 @@ document.addEventListener('DOMContentLoaded', function() {
     
     loadData();
 });
+
+function clearRegularFilters() {
+    // Сбрасываем все чекбоксы обычных фильтров
+    document.querySelectorAll('.filter-item input[type="checkbox"]').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    
+    // Сбрасываем поиск
+    const searchInput = document.getElementById('global-search');
+    if (searchInput) searchInput.value = '';
+    
+    // Сбрасываем глобальные фильтры (кроме allData)
+    selectedFilters.complexes = [];
+    selectedFilters.oiv = [];
+    selectedFilters.themes = [];
+    selectedFilters.strategies = [];
+    selectedFilters.programs = [];
+    
+    // Обновляем счетчики
+    updateFilterCount('complex-filters', 0);
+    updateFilterCount('oiv-filters', 0);
+    updateFilterCount('theme-filters', 0);
+    updateFilterCount('strategy-filters', 0);
+    updateFilterCount('program-filters', 0);
+    
+    // ОБНОВЛЯЕМ СЧЕТЧИК РАСШИРЕННОГО ФИЛЬТРА
+    updateExtendedFilterCounter();
+}
+
+window.applyFilter = function(filterParams) {
+    if (!filterParams) return;
+    
+    console.log('Applying regular filter:', filterParams);
+    
+    // Применяем фильтры к 3D сцене
+    if (window.applyCascadeFilter3D) {
+        window.applyCascadeFilter3D({
+            complexes: filterParams.complexes || [],
+            oiv: filterParams.oiv || [],
+            themes: filterParams.themes || [],
+            strategies: filterParams.strategies || [],
+            programs: filterParams.programs || [],
+            showOnlyConnections: filterParams.showOnlyConnections || false
+        });
+    }
+};

@@ -1191,6 +1191,7 @@ function centerOnObjects(objects) {
 }
 
 function resetSelection() {
+    console.log('Resetting 3D scene selection');
     selectedNodeId = null;
     selectedComplexIds = [];
     
@@ -1432,49 +1433,315 @@ window.switchTo3DView = function() {
 };
 
 // Функция для применения фильтров из табличного представления
-window.applyCascadeFilter = function(filterParams) {
-    if (!filterParams) return;
+window.applyCascadeFilter3D = function(filterParams) {
+    if (!filterParams) {
+        console.warn('applyCascadeFilter3D called without parameters');
+        resetSelection();
+        return;
+    }
     
+    console.log('=== APPLYING CASCADE FILTER TO 3D SCENE ===');
+    console.log('Filter parameters:', filterParams);
+
+    // Упрощенная проверка наличия активных фильтров
+    const hasActiveFilters = Object.values(filterParams).some(filter => {
+        if (Array.isArray(filter)) {
+            return filter.length > 0;
+        }
+        return Boolean(filter);
+    });
+
+    if (!hasActiveFilters) {
+        console.log('No active filters, showing all');
+        resetSelection();
+        if (window.updateInfoPanelData) {
+            window.updateInfoPanelData(data, {});
+        }
+        return;
+    }
+
     // Сбрасываем текущие фильтры
-    resetSelection();
+    resetSelection();		
     
-    // Применяем фильтры комплексов
+    // Собираем все объекты, которые должны быть видимы
+    const visibleNodes = new Set();
+    const visibleComplexes = new Set();
+    const visibleEdges = new Set();
+    const selectedEdgeIds = [];
+    
+    // Функция для добавления OIV и его связей
+    const addOIVAndConnections = (oivId) => {
+        console.log(`Adding OIV ${oivId} and connections`);
+        visibleNodes.add(oivId);
+        
+        const node = nodeMeshes[oivId];
+        if (node) {
+            visibleComplexes.add(node.userData.complex);
+        }
+        
+        // Добавляем все связи этого OIV
+        data.edges.forEach(edge => {
+            if (edge.source === oivId || edge.target === oivId) {
+                visibleEdges.add(edge);
+                selectedEdgeIds.push(edge.id);
+                
+                const relatedOivId = edge.source === oivId ? edge.target : edge.source;
+                visibleNodes.add(relatedOivId);
+                
+                const relatedNode = nodeMeshes[relatedOivId];
+                if (relatedNode) {
+                    visibleComplexes.add(relatedNode.userData.complex);
+                }
+            }
+        });
+    };
+    
+    // Функция для добавления комплекса и его содержимого
+    const addComplexAndContents = (complexId) => {
+        console.log(`Adding complex ${complexId} and contents`);
+        visibleComplexes.add(complexId);
+        
+        // Добавляем все OIV этого комплекса
+        const complexOIVs = data.oiv.filter(oiv => oiv.complex === complexId);
+        complexOIVs.forEach(oiv => {
+            addOIVAndConnections(oiv.id);
+        });
+    };
+    
+    // Функция для добавления связей по теме
+    const addThemeEdges = (theme) => {
+        console.log(`Adding theme ${theme} edges`);
+        const themeEdges = data.edges.filter(edge => edge.theme === theme);
+        console.log(`Theme "${theme}" has ${themeEdges.length} edges`);
+        
+        themeEdges.forEach(edge => {
+            visibleEdges.add(edge);
+            selectedEdgeIds.push(edge.id);
+            
+            visibleNodes.add(edge.source);
+            visibleNodes.add(edge.target);
+            
+            const sourceNode = nodeMeshes[edge.source];
+            const targetNode = nodeMeshes[edge.target];
+            if (sourceNode) visibleComplexes.add(sourceNode.userData.complex);
+            if (targetNode) visibleComplexes.add(targetNode.userData.complex);
+        });
+    };
+    
+    // Функция для добавления OIV по стратегии
+    const addOIVByStrategy = (strategy) => {
+        console.log(`Adding OIV by strategy ${strategy}`);
+        const oivWithStrategy = data.oiv.filter(oiv => 
+            oiv.strategies && oiv.strategies.includes(strategy)
+        );
+        
+        console.log(`Found ${oivWithStrategy.length} OIV with strategy ${strategy}`);
+        oivWithStrategy.forEach(oiv => {
+            addOIVAndConnections(oiv.id);
+        });
+    };
+    
+    // Функция для добавления OIV по программе
+    const addOIVByProgram = (program) => {
+        console.log(`Adding OIV by program ${program}`);
+        const oivWithProgram = data.oiv.filter(oiv => 
+            oiv.programs && oiv.programs.includes(program)
+        );
+        
+        console.log(`Found ${oivWithProgram.length} OIV with program ${program}`);
+        oivWithProgram.forEach(oiv => {
+            addOIVAndConnections(oiv.id);
+        });
+    };
+    
+    // Обрабатываем каждый тип фильтра
+    
+    // 1. Фильтр по комплексам
     if (filterParams.complexes && filterParams.complexes.length > 0) {
-        updateSelectedComplexes(filterParams.complexes);
+        console.log('Processing complexes:', filterParams.complexes);
+        filterParams.complexes.forEach(complexId => {
+            addComplexAndContents(complexId);
+        });
     }
     
-    // Применяем фильтры OIV
+    // 2. Фильтр по OIV
     if (filterParams.oiv && filterParams.oiv.length > 0) {
-        selectOIV(filterParams.oiv);
+        console.log('Processing OIV:', filterParams.oiv);
+        filterParams.oiv.forEach(oivId => {
+            addOIVAndConnections(oivId);
+        });
     }
     
-    // Применяем фильтры тем
+    // 3. Фильтр по темам
     if (filterParams.themes && filterParams.themes.length > 0) {
-        selectTheme(filterParams.themes);
+        console.log('Processing themes:', filterParams.themes);
+        filterParams.themes.forEach(theme => {
+            addThemeEdges(theme);
+        });
     }
     
-    // Применяем фильтры стратегий
+    // 4. Фильтр по стратегиям
     if (filterParams.strategies && filterParams.strategies.length > 0) {
-        selectStrategy(filterParams.strategies);
+        console.log('Processing strategies:', filterParams.strategies);
+        filterParams.strategies.forEach(strategy => {
+            addOIVByStrategy(strategy);
+        });
     }
     
-    // Применяем фильтры программ
+    // 5. Фильтр по программам
     if (filterParams.programs && filterParams.programs.length > 0) {
-        selectProgram(filterParams.programs);
+        console.log('Processing programs:', filterParams.programs);
+        filterParams.programs.forEach(program => {
+            addOIVByProgram(program);
+        });
     }
     
-    // Обновляем selectedFilters
+    console.log('Final visible counts:', {
+        nodes: visibleNodes.size,
+        complexes: visibleComplexes.size,
+        edges: visibleEdges.size
+    });
+    
+    console.log('Visible nodes:', Array.from(visibleNodes));
+    console.log('Visible complexes:', Array.from(visibleComplexes));
+    console.log('Visible edges:', Array.from(visibleEdges).map(e => `${e.source}-${e.target}-${e.theme}`));
+    
+    // Применяем видимость ко всем объектам сцены
+    applyVisibilityToScene(visibleNodes, visibleComplexes, visibleEdges, filterParams);
+    
+    // Центрируем камеру на видимых объектах
+    centerOnVisibleObjects(visibleNodes, visibleComplexes, visibleEdges);
+    
+    // Обновляем панель информации
+    updateInfoPanel(filterParams, selectedEdgeIds);
+    
+    // Обновляем глобальные фильтры
+    updateGlobalFilters(filterParams);
+    
+    console.log('Extended filter applied successfully');
+};
+
+// Вспомогательные функции для applyCascadeFilter3D
+function applyVisibilityToScene(visibleNodes, visibleComplexes, visibleEdges, filterParams) {
+    // Узлы (OIV)
+    Object.values(nodeMeshes).forEach(node => {
+        const isVisible = visibleNodes.has(node.userData.id);
+        node.visible = isVisible;
+        
+        if (isVisible) {
+            const containerSphere = node.children[0];
+            if (containerSphere && containerSphere.isMesh) {
+                const isDirectlySelected = isNodeDirectlySelected(node.userData.id, filterParams);
+                containerSphere.material.opacity = isDirectlySelected ? 0.3 : 0.1;
+                containerSphere.material.needsUpdate = true;
+            }
+            
+            node.traverse(child => {
+                if (child.isMesh && child !== containerSphere) {
+                    child.material.emissive.setHex(0x444444);
+                    child.material.needsUpdate = true;
+                }
+            });
+        }
+    });
+    
+    // Комплексы
+    Object.values(complexSpheres).forEach(sphere => {
+        const isVisible = visibleComplexes.has(sphere.userData.id);
+        sphere.visible = isVisible;
+        
+        if (isVisible) {
+            const isDirectlySelected = filterParams.complexes && 
+                filterParams.complexes.includes(sphere.userData.id);
+            sphere.material.opacity = isDirectlySelected ? 0.8 : 0.3;
+            sphere.material.needsUpdate = true;
+        }
+    });
+    
+    // Связи
+    Object.values(edgeLines).forEach(line => {
+        const lineKey = Object.keys(edgeLines).find(key => edgeLines[key] === line);
+        if (lineKey) {
+            const [sourceId, targetId, theme, id] = lineKey.split('-');
+            const edge = data.edges.find(e => e.id === id);
+            const isVisibleEdge = edge && visibleEdges.has(edge);
+            
+            line.visible = isVisibleEdge;
+            if (isVisibleEdge) {
+                const isDirectlyRelated = isEdgeDirectlyRelated(edge, filterParams);
+                line.material.opacity = isDirectlyRelated ? 1.0 : 0.6;
+                line.material.needsUpdate = true;
+                
+                // Устанавливаем правильный цвет для темы
+                const themeColor = data.themeColors[theme];
+                if (themeColor) {
+                    line.material.color.set(themeColor);
+                }
+            }
+        }
+    });
+}
+
+function isNodeDirectlySelected(nodeId, filterParams) {
+    return (filterParams.oiv && filterParams.oiv.includes(nodeId)) ||
+           (filterParams.complexes && data.oiv.find(oiv => 
+               oiv.id === nodeId && filterParams.complexes.includes(oiv.complex))) ||
+           (filterParams.strategies && data.oiv.find(oiv => 
+               oiv.id === nodeId && oiv.strategies && 
+               oiv.strategies.some(s => filterParams.strategies.includes(s)))) ||
+           (filterParams.programs && data.oiv.find(oiv => 
+               oiv.id === nodeId && oiv.programs && 
+               oiv.programs.some(p => filterParams.programs.includes(p))));
+}
+
+function isEdgeDirectlyRelated(edge, filterParams) {
+    return (filterParams.oiv && (filterParams.oiv.includes(edge.source) || 
+                                filterParams.oiv.includes(edge.target))) ||
+           (filterParams.themes && filterParams.themes.includes(edge.theme)) ||
+           (filterParams.complexes && (
+               (data.oiv.find(oiv => oiv.id === edge.source && 
+                                   filterParams.complexes.includes(oiv.complex))) ||
+               (data.oiv.find(oiv => oiv.id === edge.target && 
+                                   filterParams.complexes.includes(oiv.complex)))
+           ));
+}
+
+function centerOnVisibleObjects(visibleNodes, visibleComplexes, visibleEdges) {
+    const objectsToFocus = [
+        ...Array.from(visibleNodes).map(id => nodeMeshes[id]).filter(Boolean),
+        ...Array.from(visibleComplexes).map(id => complexSpheres[id]).filter(Boolean),
+        ...Array.from(visibleEdges).map(edge => 
+            edgeLines[`${edge.source}-${edge.target}-${edge.theme}-${edge.id}`]
+        ).filter(Boolean)
+    ];
+    
+    if (objectsToFocus.length > 0) {
+        centerOnObjects(objectsToFocus);
+    }
+}
+
+function updateInfoPanel(filterParams, selectedEdgeIds) {
+    if (window.updateInfoPanelData) {
+        window.updateInfoPanelData(data, {
+            complexes: filterParams.complexes || [],
+            oiv: filterParams.oiv || [],
+            themes: filterParams.themes || [],
+            strategies: filterParams.strategies || [],
+            programs: filterParams.programs || [],
+            edges: selectedEdgeIds
+        });
+    }
+}
+
+function updateGlobalFilters(filterParams) {
     selectedFilters = {
         complexes: filterParams.complexes || [],
         oiv: filterParams.oiv || [],
         themes: filterParams.themes || [],
         strategies: filterParams.strategies || [],
-        programs: filterParams.programs || [],
-        projects: filterParams.projects || [],
-        commonFilters: filterParams.commonFilters || [],
-        showOnlyConnections: filterParams.showOnlyConnections || false
+        programs: filterParams.programs || []
     };
-};
+}
 
 // Добавьте кнопки переключения в 3D сцену
 function addTableViewSwitchButton() {
