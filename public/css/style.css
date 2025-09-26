@@ -972,3 +972,279 @@ canvas {
     right: 10px;
     z-index: 1000;
 }
+
+/* Стили для системы акцептации */
+.user-auth {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    z-index: 1000;
+    background-color: rgba(30, 30, 30, 0.9);
+    border-radius: 8px;
+    padding: 0.8rem 1rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    border: 1px solid #444;
+    backdrop-filter: blur(5px);
+}
+
+.login-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.login-form input {
+    padding: 0.6rem 0.8rem;
+    border: 1px solid #444;
+    border-radius: 20px;
+    background-color: rgba(50, 50, 50, 0.9);
+    color: #e0e0e0;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.3s ease;
+    min-width: 120px;
+}
+
+.login-form input:focus {
+    border-color: #4a6da7;
+    box-shadow: 0 0 5px rgba(74, 109, 167, 0.5);
+}
+
+.login-form input::placeholder {
+    color: #888;
+}
+
+.login-btn {
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: 20px;
+    background-color: #4a6da7;
+    color: #e0e0e0;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Clarendon URW', 'Arial', sans-serif;
+    font-weight: 500;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    /* Добавляем общие стили как у других кнопок */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 80px;
+}
+
+.login-btn:hover {
+    background-color: #3a5a8f;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.login-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.3);
+}
+
+.login-btn svg {
+    width: 16px;
+    height: 16px;
+    margin-right: 5px;
+}
+
+.user-info {
+    color: #e0e0e0;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.user-name {
+    font-weight: 500;
+    color: #4a6da7;
+}
+
+.logout-btn {
+    padding: 0.4rem 0.8rem;
+    border: 1px solid #444;
+    border-radius: 15px;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #e0e0e0;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.logout-btn:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: #4a6da7;
+}
+
+.approval-status {
+    padding: 0.4rem 0.8rem;
+    border-radius: 15px;
+    font-size: 12px;
+    font-weight: 500;
+    margin-left: 10px;
+}
+
+.approval-status.approved {
+    background-color: rgba(40, 167, 69, 0.2);
+    color: #28a745;
+    border: 1px solid #28a745;
+}
+
+.approval-status.rejected {
+    background-color: rgba(220, 53, 69, 0.2);
+    color: #dc3545;
+    border: 1px solid #dc3545;
+}
+
+.approval-status.pending {
+    background-color: rgba(255, 193, 7, 0.2);
+    color: #ffc107;
+    border: 1px solid #ffc107;
+}
+
+.approval-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #444;
+}
+
+.approval-select {
+    padding: 0.5rem;
+    border: 1px solid #444;
+    border-radius: 4px;
+    background-color: rgba(50, 50, 50, 0.9);
+    color: #e0e0e0;
+    font-size: 13px;
+    outline: none;
+}
+
+.approval-select:focus {
+    border-color: #4a6da7;
+}
+
+.rejection-comment textarea {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #444;
+    border-radius: 4px;
+    background-color: rgba(50, 50, 50, 0.9);
+    color: #e0e0e0;
+    font-size: 13px;
+    resize: vertical;
+    min-height: 60px;
+    outline: none;
+}
+
+.rejection-comment textarea:focus {
+    border-color: #4a6da7;
+}
+
+.status-badge {
+    padding: 0.3rem 0.6rem;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.status-badge.approved {
+    background-color: #28a745;
+    color: white;
+}
+
+.status-badge.rejected {
+    background-color: #dc3545;
+    color: white;
+}
+
+.status-badge.pending {
+    background-color: #ffc107;
+    color: black;
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+    .user-auth {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        padding: 0.6rem;
+    }
+    
+    .login-form {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .login-form input {
+        width: 100%;
+        min-width: auto;
+    }
+    
+    .user-info {
+        flex-direction: column;
+        gap: 8px;
+        text-align: center;
+    }
+    
+    .approval-status {
+        margin-left: 0;
+        margin-top: 5px;
+    }
+}
+
+/* Анимации */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.user-auth {
+    animation: fadeIn 0.3s ease;
+}
+
+/* Стили для уведомлений */
+.auth-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    color: #e0e0e0;
+    font-size: 14px;
+    z-index: 1100;
+    animation: slideInRight 0.3s ease;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.auth-notification.success {
+    background-color: rgba(40, 167, 69, 0.9);
+    border-left: 4px solid #28a745;
+}
+
+.auth-notification.error {
+    background-color: rgba(220, 53, 69, 0.9);
+    border-left: 4px solid #dc3545;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
